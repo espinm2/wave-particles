@@ -1,5 +1,5 @@
 #include "glCanvas.h"
-#include "ifs.h"
+#include "particlesystem.h"
 #include "argparser.h"
 #include "camera.h"
 
@@ -7,7 +7,7 @@
 // static variables of GLCanvas class
 
 ArgParser* GLCanvas::args = NULL;
-IFS* GLCanvas::ifs = NULL;
+ParticleSystem* GLCanvas::ifs = NULL;
 Camera* GLCanvas::camera = NULL;
 GLFWwindow* GLCanvas::window = NULL;
 
@@ -31,16 +31,16 @@ bool GLCanvas::superKeyPressed = false;
 // by calling 'exit(0)'
 // ========================================================
 
-void GLCanvas::initialize(ArgParser *_args, IFS *_ifs) {
+void GLCanvas::initialize(ArgParser *_args, ParticleSystem *_ifs) {
   args = _args;
   ifs = _ifs;
 
   // initial placement of camera 
-  glm::vec3 camera_position = glm::vec3(0.5,0.5,5);
-  glm::vec3 point_of_interest = glm::vec3(0.5,0.5,0.5);
+  glm::vec3 camera_position =   glm::vec3(0.5, 0.5, 5.0);
+  glm::vec3 point_of_interest = glm::vec3(0.5, 0.5, 0.5);
   glm::vec3 up = glm::vec3(0,1,0);
 #if 1
-  float size = 1.3; 
+  float size = 1;
   camera = new OrthographicCamera(camera_position, point_of_interest, up, size);
 #else
   float angle = 25.0;
@@ -93,6 +93,7 @@ void GLCanvas::initialize(ArgParser *_args, IFS *_ifs) {
   glfwSetCursorPosCallback(GLCanvas::window,GLCanvas::mousemotionCB);
   glfwSetMouseButtonCallback(GLCanvas::window,GLCanvas::mousebuttonCB);
   glfwSetKeyCallback(GLCanvas::window,GLCanvas::keyboardCB);
+
 
   // Initialize the IFS
   ifs->setupVBOs();
@@ -254,6 +255,7 @@ GLuint LoadShaders(const std::string &vertex_file_path,const std::string &fragme
   glAttachShader(ProgramID, VertexShaderID);
   glAttachShader(ProgramID, FragmentShaderID);
   glLinkProgram(ProgramID);
+
   // Check the program
   glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
   glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
@@ -267,6 +269,7 @@ GLuint LoadShaders(const std::string &vertex_file_path,const std::string &fragme
   glDeleteShader(FragmentShaderID);
   
   return ProgramID;
+
 }
 
 // ========================================================

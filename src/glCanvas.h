@@ -13,7 +13,7 @@
 #include <string>
 
 class ArgParser;
-class IFS;
+class ParticleSystem;
 class Camera;
 
 // ====================================================================
@@ -26,7 +26,7 @@ public:
 
   // various static variables
   static ArgParser *args;
-  static IFS *ifs;
+  static ParticleSystem *ifs;
   static Camera* camera;
   static GLFWwindow* window;
 
@@ -43,7 +43,7 @@ public:
   static bool altKeyPressed;
   static bool superKeyPressed;
 
-  static void initialize(ArgParser *_args, IFS *_ifs);
+  static void initialize(ArgParser *_args, ParticleSystem *_ifs);
 
   // Callback functions for mouse and keyboard events
   static void mousebuttonCB(GLFWwindow *window, int which_button, int action, int mods);

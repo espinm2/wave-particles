@@ -1,11 +1,13 @@
-#ifndef _IFS_H_
-#define _IFS_H_
+#ifndef _PARTICLESYSTEM_H_
+#define _PARTICLESYSTEM_H_
 
 #include <cassert>
 #include <vector>
 #include <string>
+#include <list>
 
 #include "glCanvas.h"
+#include "particle.h"
 
 class ArgParser;
 
@@ -13,19 +15,24 @@ class ArgParser;
 // ====================================================================
 // class to manage the data and drawing for an "iterated function system"
 
-class IFS {
+class ParticleSystem {
 
   // ASSIGNMENT: add whatever additional variables & functions you need
 
 public:
 
   // CONSTRUCTOR
-  IFS(ArgParser *a);
+  ParticleSystem(ArgParser *a);
 
   // HELPER FUNCTIONS FOR RENDERING
   void setupVBOs();
   void drawVBOs(GLuint MatrixID,const glm::mat4 &MVP);
+  void update();
   void cleanupVBOs();
+
+  // Simulation Functions
+  void createWave(double x, double y);
+  unsigned int getSize(){ return numParticles; }
 
 private:
 
@@ -33,23 +40,28 @@ private:
   void setupPoints();
   void drawPoints() const;
   void cleanupPoints();
-  void setupCube();
-  void drawCube() const;
-  void cleanupCube();
 
   // REPRESENTATION
   ArgParser *args;
   GLuint VaoId;
   GLuint VboId;
+
+  std::vector<std::list<Particle*> > particleRings; // Where we keep particles
+  unsigned int numParticles;                        // Update to keep accurate
+
+  // Tune to change simulation behavior
+  bool isBounded;
+  double initAmps;
+  double minAmps;
+  double velocity;
+  double particleRadius;
+  double clusterRadius;
+  unsigned int clusterSize;
+
 };
 
 // ====================================================================
-// ====================================================================
-
 // some helper stuff for VBOs
-#define NUM_CUBE_TRIANGLES 12 
-#define NUM_CUBE_VERTS NUM_CUBE_TRIANGLES * 3
-
 class VertexPosColor {
 public:
   // by default vertices are set to black
@@ -59,9 +71,6 @@ public:
   glm::vec4 XYZW;
   glm::vec4 RGBA;
 };
-
-
-// ====================================================================
 // ====================================================================
 
 #endif

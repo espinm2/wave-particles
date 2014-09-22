@@ -1,12 +1,12 @@
 cmake_minimum_required (VERSION 2.8)
-project (hw0)
+project (particle_system)
 
 # all the .cpp files that make up this project
 add_executable(ifs 
   main.cpp
   glCanvas.cpp    
   camera.cpp  	       
-  ifs.cpp
+  particlesystem.cpp
 )
 
 # We've placed a few FindXXX.cmake files in the the source directory

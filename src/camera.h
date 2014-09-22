@@ -65,6 +65,7 @@ public:
   // GL NAVIGATION
   void glPlaceCamera();
   void zoomCamera(double factor);
+
 private:
   // REPRESENTATION
   double size;

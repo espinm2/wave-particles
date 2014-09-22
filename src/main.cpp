@@ -3,22 +3,25 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 #include "argparser.h"
-#include "ifs.h"
+#include "particle.h"
 #include "glCanvas.h"
 #include "camera.h"
+#include "particlesystem.h"
 
 // ====================================================================
 // ====================================================================
 
 int main(int argc, char *argv[]) {
+
   // parse the command line arguments
   ArgParser args(argc, argv);
-  // create the IFS object
-  IFS ifs(&args);
 
-  GLCanvas::initialize(&args,&ifs);  
+  // create the particlesystem object
+  ParticleSystem partsys(&args);
+  GLCanvas::initialize(&args,&partsys);
   
   glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
   glEnable(GL_DEPTH_TEST);
@@ -26,33 +29,48 @@ int main(int argc, char *argv[]) {
   glEnable(GL_CULL_FACE);
 
   // Create and compile our GLSL program from the shaders
-  GLuint programID = LoadShaders( args.path+"/ifs.vertexshader", args.path+"/ifs.fragmentshader" );
-  
+  GLuint programID = LoadShaders( args.path+"/shader.vertexshader", args.path+"/shader.fragmentshader" );
+
   // Get a handle for our "MVP" uniform
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
+  // Debug /////////////////////////////////////////
+  // partsys.createWave(0,0);
+  std::cout << partsys.getSize() << std::endl;
+  // GLCanvas::camera->zoomCamera(-300);
+  // End Debug /////////////////////////////////////
+
+
   while (!glfwWindowShouldClose(GLCanvas::window))  {
+
+    // assert(partsys.getSize() > 0); // DEBUG: Are we creating stuff in wave particles
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(programID);
 
     GLCanvas::camera->glPlaceCamera();
 
+
     // Build the matrix to position the camera based on keyboard and mouse input
     glm::mat4 ProjectionMatrix = GLCanvas::camera->getProjectionMatrix();
     glm::mat4 ViewMatrix = GLCanvas::camera->getViewMatrix();
     glm::mat4 ModelMatrix = glm::mat4(1.0);
     glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
     
     // pass the matrix to the draw routines (for further editing)
-    ifs.drawVBOs(MatrixID,MVP);
+    partsys.drawVBOs(MatrixID,MVP);
+
+    // Animate do it 10 times before next render
+    // partsys.update();
 
     // Swap buffers
     glfwSwapBuffers(GLCanvas::window);
     glfwPollEvents();  
+
   }
   
-  ifs.cleanupVBOs();
+  partsys.cleanupVBOs();
   glDeleteProgram(programID);
   
   // Close OpenGL window and terminate GLFW
