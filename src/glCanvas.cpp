@@ -177,6 +177,8 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
   if (action == GLFW_PRESS && key < 256) {
     if (key == GLFW_KEY_ESCAPE || key == 'q' || key == 'Q') {
       glfwSetWindowShouldClose(GLCanvas::window, GL_TRUE);
+    } else if(key == GLFW_KEY_A || key == 'a' || key == 'A'){
+        args->animate ? args->animate = false : args->animate = true;
     } else {
       std::cout << "UNKNOWN KEYBOARD INPUT  '" << (char)key << "'" << std::endl;
     }

@@ -34,11 +34,8 @@ int main(int argc, char *argv[]) {
   // Get a handle for our "MVP" uniform
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-  // Debug /////////////////////////////////////////
-  // partsys.createWave(0,0);
-  std::cout << partsys.getSize() << std::endl;
-  // GLCanvas::camera->zoomCamera(-300);
-  // End Debug /////////////////////////////////////
+  // Testing my making a wave in the middle of the screen
+  partsys.createWave(0.5,0.5);
 
 
   while (!glfwWindowShouldClose(GLCanvas::window))  {
@@ -62,7 +59,7 @@ int main(int argc, char *argv[]) {
     partsys.drawVBOs(MatrixID,MVP);
 
     // Animate do it 10 times before next render
-    // partsys.update();
+    if(args.animate){ partsys.update(); }
 
     // Swap buffers
     glfwSwapBuffers(GLCanvas::window);

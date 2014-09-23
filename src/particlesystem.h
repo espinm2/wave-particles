@@ -50,6 +50,7 @@ private:
   unsigned int numParticles;                        // Update to keep accurate
 
   // Tune to change simulation behavior
+  double timestep;
   bool isBounded;
   double initAmps;
   double minAmps;
@@ -72,5 +73,17 @@ public:
   glm::vec4 RGBA;
 };
 // ====================================================================
+// some helper functions for math
+
+
+
+
+
+
+
+
+
+
+
 
 #endif

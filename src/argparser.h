@@ -35,6 +35,7 @@ public:
   }
 
   void DefaultValues() {
+    animate = false;
     iters = 3;
     width = 400;
     height = 400;
@@ -45,6 +46,7 @@ public:
   // REPRESENTATION
   // all public! (no accessors)
 
+  bool animate;
   std::string path;
   int iters;
   int width;

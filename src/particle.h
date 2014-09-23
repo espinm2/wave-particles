@@ -18,7 +18,7 @@ class Particle
       // ACCESSORS
       const glm::vec3 & getOrginalPos() const{ return original_position; }
       const glm::vec3 & getPos() const { return position; }
-      const glm::vec3 & getVel() const { return direction; }
+      const glm::vec3 & getDir() const { return direction; }
       double getAmp() const { return ampage; }
       void print(){
         std::cout << "=================================" << std::endl;
@@ -32,7 +32,7 @@ class Particle
       // MODIFIERS
       void setOrginalPos(const glm::vec3 & pos){ original_position = pos; }
       void setPos(const glm::vec3 & pos){ position = pos; }
-      void setVel(const glm::vec3 & vel){ direction = vel; }
+      void setDir(const glm::vec3 & dir){ direction = dir; }
       void setAmp(double a) { ampage = a; }
 
     private:
