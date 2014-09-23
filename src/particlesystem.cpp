@@ -14,9 +14,9 @@ const double PI_CONST  = 3.1415926535;
 
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
   numParticles = 0;
-  timestep = .00001;
+  timestep = .000001;
   isBounded = true;
-  initAmps  = 10.0;
+  initAmps  = 100.0;
   minAmps   = 0.1;
   velocity  = 340;
   particleRadius = 0.001;
@@ -122,60 +122,56 @@ void ParticleSystem::update(){
         }//bounded
 
         // Debug ///////////////////////////////
-        curPart->print();
-        std::cout << "vx: " << vx << std::endl;
-        std::cout << "vy: " << vy << std::endl;
-        std::cout << "rad"  << radianAngle << std::endl;
-
+        // curPart->print();
+        // std::cout << "vx: " << vx << std::endl;
+        // std::cout << "vy: " << vy << std::endl;
+        // std::cout << "rad"  << radianAngle << std::endl;
         // End Debug ///////////////////////////////
 
-        /* // Are we far away from other points enough to split?
+        // Are we far away from other points enough to split?
         bool rightOutOfRange = false;
         bool leftOutOfRange  = false;
 
         // Check to the right if not at head
         if(itr != curRing->begin()){
           std::list<Particle*>::iterator itrRight = itr; itrRight--;
-          WavePart* rightPart = *itrRight;
-          rightOutOfRange = 5 * PART_RADIUS  < curPart->getPos().distance(rightPart->getPos());
+          Particle* rightPart = *itrRight;
+          rightOutOfRange = 5 * particleRadius < glm::distance(curPart->getPos(), rightPart->getPos());
         }
 
         // Check to the left if not at the tail
-        std::list<WavePart*>::iterator itrLeft = itr; itrLeft++;
+        std::list<Particle*>::iterator itrLeft = itr; itrLeft++;
         if(itrLeft != curRing->end()){
-          WavePart* leftPart = *itrLeft;
-          leftOutOfRange = 5 * PART_RADIUS  < curPart->getPos().distance(leftPart->getPos());
+          Particle* leftPart = *itrLeft;
+          leftOutOfRange = 5 * particleRadius  < glm::distance(curPart->getPos(), leftPart->getPos());
         }
 
         // If either left or right is to far, split mofo!
-        if(leftOutOfRange || rightOutOfRange){
+        if(leftOutOfRange && rightOutOfRange){
           //std::cout << "Generating Children" << std::endl;
 
           // Get offset
-          double angleBetweenParts = (2*PI_CONST)/CLUSTER_SIZE;
+          double angleBetweenParts = (2*PI_CONST)/clusterSize;
           double offsetAngle = angleBetweenParts/4.0;
 
-
           // Generate left particle
-          double radianAngleRight = (double)(axis.angleRad(dir) - offsetAngle);
-          double vxRight = VELOCITY * cos(radianAngleRight);
-          double vyRight = VELOCITY * sin(radianAngleRight);
-          ofVec2f newPosRight( pos.x + (vxRight * timestep) , pos.y + (vyRight * timestep) );
-          ofVec2f dirRight(newPosRight - pos);
-          dirRight = dirRight.normalized();
-          WavePart * newRightPart = new WavePart(newPosRight,curPart->getAmp()/3.0);
-          newRightPart->setDir(dirRight);
+          double radianAngleRight = angleBetween(axis,dir,norm) - offsetAngle;
+          double vxRight = velocity * cos(radianAngleRight);
+          double vyRight = velocity * sin(radianAngleRight);
+          glm::vec3 newPosRight( pos.x + (vxRight * timestep) , pos.y + (vyRight * timestep), 0 );
+          glm::vec3 dirRight(newPosRight - pos);
+          dirRight = glm::normalize(dirRight);
+          Particle * newRightPart = new Particle(newPosRight,dirRight,curPart->getAmp()/3.0);
 
 
           // Generate right particle
-          double radianAngleLeft  = (double)(axis.angleRad(dir) + offsetAngle);
-          double vxLeft = VELOCITY * cos(radianAngleLeft);
-          double vyLeft = VELOCITY * sin(radianAngleLeft);
-          ofVec2f newPosLeft( pos.x + (vxLeft * timestep) , pos.y + (vyLeft * timestep) );
-          ofVec2f dirLeft(newPosLeft - pos);
-          dirLeft = dirLeft.normalized();
-          WavePart * newLeftPart = new WavePart(newPosLeft,curPart->getAmp()/3.0);
-          newLeftPart->setDir(dirLeft);
+          double radianAngleLeft = angleBetween(axis,dir,norm) + offsetAngle;
+          double vxLeft = velocity * cos(radianAngleLeft);
+          double vyLeft = velocity * sin(radianAngleLeft);
+          glm::vec3 newPosLeft( pos.x + (vxLeft * timestep) , pos.y + (vyLeft * timestep),0 );
+          glm::vec3 dirLeft(newPosLeft - pos);
+          dirLeft = glm::normalize(dirLeft);
+          Particle * newLeftPart = new Particle(newPosLeft,dirLeft,curPart->getAmp()/3.0);
 
           // Reduce amplage of middle particle
           curPart->setAmp(curPart->getAmp()/3.0);
@@ -188,12 +184,12 @@ void ParticleSystem::update(){
           curRing->insert(itr,newRightPart);
           curRing->insert(itr,curPart);
           curRing->insert(itr,newLeftPart);
-          TOTAL_PARTICLES += 2;
+          numParticles += 2;
 
           // Move back one so im at left newest
           itr--;
 
-        }// Genereate child optinal */
+        }// Genereate child optinal
 
       }//ringloop for each particle
 
