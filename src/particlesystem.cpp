@@ -14,14 +14,14 @@ const double PI_CONST  = 3.1415926535;
 
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
   numParticles = 0;
-  timestep = .000001;
+  timestep = .00001;
   isBounded = true;
-  initAmps  = 100.0;
+  initAmps  = 5000.0;
   minAmps   = 0.1;
   velocity  = 340;
   particleRadius = 0.001;
   clusterRadius  = 0.01;
-  clusterSize    = 4;
+  clusterSize    = 10;
 }
 
 // ====================================================================
@@ -70,11 +70,23 @@ void ParticleSystem::update(){
     // For each ring of particles
     for(unsigned int i=0; i < particleRings.size(); i++){
 
-      // Get pointer to that ring
-      std::list<Particle*> * curRing = & particleRings[i];
+      std::list<Particle*> * curRing = & particleRings[i]; // Get pointer to that ring
+      std::list<Particle*>::iterator itr;                  // Get iterator for this ring
 
-      // Get iterator for this list
-      std::list<Particle*>::iterator itr;
+      // Kill the ring if there is less then 3 paricles (FIXME)
+      if(curRing->size() < clusterSize){
+          for ( itr = curRing->begin(); itr != curRing->end(); ){
+                delete * itr; // For each particle we delte it
+                itr = curRing->erase(itr);
+          }
+
+          // Get rid of it from the main vector of list
+          particleRings.erase(particleRings.begin()+i);
+          i--;
+          continue; // Move on to the next item
+
+      }// kill ring
+
 
       // For each particle
       for (itr = curRing->begin(); itr != curRing->end(); ++itr){
@@ -147,7 +159,7 @@ void ParticleSystem::update(){
         }
 
         // If either left or right is to far, split mofo!
-        if(leftOutOfRange && rightOutOfRange){
+        if(leftOutOfRange || rightOutOfRange){
           //std::cout << "Generating Children" << std::endl;
 
           // Get offset
@@ -301,7 +313,7 @@ void ParticleSystem::setupPoints() {
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
   
   // increase the size of the points slightly
-  glPointSize(5.0);
+  glPointSize(1.0);
 
   delete [] points;
   HandleGLError("leaving setupPoints");

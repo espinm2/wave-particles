@@ -7,7 +7,7 @@
 // static variables of GLCanvas class
 
 ArgParser* GLCanvas::args = NULL;
-ParticleSystem* GLCanvas::ifs = NULL;
+ParticleSystem* GLCanvas::partsys = NULL;
 Camera* GLCanvas::camera = NULL;
 GLFWwindow* GLCanvas::window = NULL;
 
@@ -23,6 +23,7 @@ bool GLCanvas::shiftKeyPressed = false;
 bool GLCanvas::controlKeyPressed = false;
 bool GLCanvas::altKeyPressed = false;
 bool GLCanvas::superKeyPressed = false;
+bool GLCanvas::waveKeyPressed = false;
 
 // ========================================================
 // Initialize all appropriate OpenGL variables, set
@@ -33,7 +34,7 @@ bool GLCanvas::superKeyPressed = false;
 
 void GLCanvas::initialize(ArgParser *_args, ParticleSystem *_ifs) {
   args = _args;
-  ifs = _ifs;
+  partsys = _ifs;
 
   // initial placement of camera 
   glm::vec3 camera_position =   glm::vec3(0.5, 0.5, 5.0);
@@ -96,7 +97,7 @@ void GLCanvas::initialize(ArgParser *_args, ParticleSystem *_ifs) {
 
 
   // Initialize the IFS
-  ifs->setupVBOs();
+  partsys->setupVBOs();
 
   HandleGLError("finished glcanvas initialize");
 }
@@ -106,10 +107,26 @@ void GLCanvas::initialize(ArgParser *_args, ParticleSystem *_ifs) {
 // ========================================================
 
 void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, int mods) {
+
   // store the current state of the mouse buttons
   if (which_button == GLFW_MOUSE_BUTTON_1) {
     if (action == GLFW_PRESS) {
       leftMousePressed = true;
+
+      // Handlig the button clicking
+      if(waveKeyPressed){
+
+        int width,height;
+        glfwGetWindowSize(window,&width,&height);
+
+        std::cout << mouseX << " " << mouseY << std::endl;
+
+        double relWidth = mouseX / (double)width;
+        double relHeight= (height-mouseY) / (double)height;
+
+        partsys->createWave(relWidth,relHeight);
+        waveKeyPressed = false;
+      }
     } else {
       assert (action == GLFW_RELEASE);
       leftMousePressed = false;
@@ -136,6 +153,9 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 // ========================================================
 
 void GLCanvas::mousemotionCB(GLFWwindow *window, double x, double y) {
+
+
+
   // camera controls that work well for a 3 button mouse
   if (!shiftKeyPressed && !controlKeyPressed && !altKeyPressed) {
     if (leftMousePressed) {
@@ -147,6 +167,7 @@ void GLCanvas::mousemotionCB(GLFWwindow *window, double x, double y) {
     }
   }
 
+   // Control for single button mouse
   if (leftMousePressed || middleMousePressed || rightMousePressed) {
     if (shiftKeyPressed) {
       camera->zoomCamera(mouseY-y);
@@ -156,9 +177,11 @@ void GLCanvas::mousemotionCB(GLFWwindow *window, double x, double y) {
       camera->truckCamera(mouseX-x, y-mouseY);    
     }
     if (altKeyPressed) {
-      camera->dollyCamera(y-mouseY);    
+      camera->dollyCamera(y-mouseY);
     }
   }
+
+
   mouseX = x;
   mouseY = y;
 }
@@ -173,12 +196,16 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
   controlKeyPressed = (GLFW_MOD_CONTROL & mods);
   altKeyPressed = (GLFW_MOD_ALT & mods);
   superKeyPressed = (GLFW_MOD_SUPER & mods);
+
+
   // non modifier key actions
   if (action == GLFW_PRESS && key < 256) {
     if (key == GLFW_KEY_ESCAPE || key == 'q' || key == 'Q') {
       glfwSetWindowShouldClose(GLCanvas::window, GL_TRUE);
     } else if(key == GLFW_KEY_A || key == 'a' || key == 'A'){
         args->animate ? args->animate = false : args->animate = true;
+    }else if(key == GLFW_KEY_W){
+        waveKeyPressed = true;
     } else {
       std::cout << "UNKNOWN KEYBOARD INPUT  '" << (char)key << "'" << std::endl;
     }

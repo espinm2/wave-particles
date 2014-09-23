@@ -26,7 +26,7 @@ public:
 
   // various static variables
   static ArgParser *args;
-  static ParticleSystem *ifs;
+  static ParticleSystem *partsys;
   static Camera* camera;
   static GLFWwindow* window;
 
@@ -42,6 +42,7 @@ public:
   static bool controlKeyPressed;
   static bool altKeyPressed;
   static bool superKeyPressed;
+  static bool waveKeyPressed;
 
   static void initialize(ArgParser *_args, ParticleSystem *_ifs);
 

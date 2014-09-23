@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   
   glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
   glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS); 
+  glDepthFunc(GL_LESS);
   glEnable(GL_CULL_FACE);
 
   // Create and compile our GLSL program from the shaders
@@ -33,9 +33,6 @@ int main(int argc, char *argv[]) {
 
   // Get a handle for our "MVP" uniform
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-
-  // Testing my making a wave in the middle of the screen
-  partsys.createWave(0.5,0.5);
 
 
   while (!glfwWindowShouldClose(GLCanvas::window))  {
