@@ -37,7 +37,8 @@ particlesystem.h and particlesystem.cpp are both used to hold and update particl
 particle.h contains the actual particle and its attributes. <br>
 glCanvas.cpp and glCanvas.h contain all the window manager functions and initial setup for our program.<br>
 main.cpp contains the main render loop.<br>
-All images are to examples of the visualization working<br>
+All images are to examples of the visualization working.<br>
+Except buggy.png which an issue with having two waves generated from two sources. <br>
 
 
 <br>
