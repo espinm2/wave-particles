@@ -40,29 +40,29 @@ main.cpp contains the main render loop.<br>
 All images are to examples of the visualization working<br>
 
 
-
+<br>
 ### Times
-Approximate time spent this week:
- 0.0 hrs   Motivation & Problem Definition 
- 0.0 hrs   Visualization Design 
- 0.0 hrs   Data Collection 
- 20.0 hrs  Visualization Execution
- 1.0 hrs   Analysis & Validation
- 0.0 hrs   Visualization Revision
- 0.0 hrs   Presentation
-------------------------------------------------
- 21.0 hrs   Total time spent
+Approximate time spent this week:<br>
+ 0.0 hrs   Motivation & Problem Definition <br>
+ 0.0 hrs   Visualization Design <br>
+ 0.0 hrs   Data Collection <br>
+ 20.0 hrs  Visualization Execution<br>
+ 1.0 hrs   Analysis & Validation<br>
+ 0.0 hrs   Visualization Revision<br>
+ 0.0 hrs   Presentation<br>
+...........................................
+ 21.0 hrs   Total time spent<br>
 
 
-TOTAL time spent this semester:
- 0.0 hrs   Motivation & Problem Definition 
- 0.0 hrs   Visualization Design 
- 5.0 hrs     Data Collection 
- 100.0 hrs   Visualization Execution
- 0.0 hrs   Analysis & Validation
- 0.0 hrs   Visualization Revision
- 0.0 hrs   Presentation
-------------------------------------------------
- 105.0 hrs   Total time spent
+TOTAL time spent this semester:<br>
+ 0.0 hrs   Motivation & Problem Definition <br>
+ 0.0 hrs   Visualization Design <br>
+ 5.0 hrs     Data Collection <br>
+ 100.0 hrs   Visualization Execution<br>
+ 0.0 hrs   Analysis & Validation<br>
+ 0.0 hrs   Visualization Revision<br>
+ 0.0 hrs   Presentation<br>
+...........................................
+ 105.0 hrs   Total time spent<br>
 
 
