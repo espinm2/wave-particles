@@ -56,7 +56,10 @@ int main(int argc, char *argv[]) {
     partsys.drawVBOs(MatrixID,MVP);
 
     // Animate do it 10 times before next render
-    if(args.animate){ partsys.update(); }
+    if(args.animate){
+        partsys.update(); // std::cout << partsys.getSize() << std::endl;
+    }
+
 
     // Swap buffers
     glfwSwapBuffers(GLCanvas::window);

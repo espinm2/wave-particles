@@ -32,7 +32,9 @@ public:
 
   // Simulation Functions
   void createWave(double x, double y);
+  glm::vec3 getPosCircle(double radius, double radAngle, const glm::vec3 center);
   unsigned int getSize(){ return numParticles; }
+  double angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm);
 
 private:
 
@@ -72,18 +74,5 @@ public:
   glm::vec4 XYZW;
   glm::vec4 RGBA;
 };
-// ====================================================================
-// some helper functions for math
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

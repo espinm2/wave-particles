@@ -7,57 +7,27 @@
 #include "particlesystem.h"
 #include "argparser.h"
 
-// ====================================================================
 // Global Varibles
-const double PI_CONST  = 3.1415926535;
-// ====================================================================
+const long double PI_CONST  = atan(1)*4;
+const bool SIMULT = true;
 
+// ====================================================================
+// Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
   numParticles = 0;
-  timestep = .00001;
+  timestep = .00005;
   isBounded = true;
-  initAmps  = 5000.0;
+  initAmps  = 10000.0;
   minAmps   = 0.1;
   velocity  = 340;
-  particleRadius = 0.001;
-  clusterRadius  = 0.01;
-  clusterSize    = 10;
+  // velocity  = 100;
+  particleRadius = 0.01;
+  clusterRadius  = 0.001;
+  clusterSize    = 4;
 }
 
 // ====================================================================
-// ====================================================================
-
-void ParticleSystem::setupVBOs() {
-  HandleGLError("enter setupVBOs");
-  setupPoints();
-  HandleGLError("leaving setupVBOs");
-}
-
-// NOTE: The matrix that is passed in contains the transformations for
-// the current camera/view position.  When drawing the objects in the
-// scene you can apply additional transformations by multiplying your
-// own matrices with this matrix before calling draw.
-
-void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
-  HandleGLError("enter drawVBOs");
-  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &m[0][0]);
-  drawPoints();
-  HandleGLError("leaving drawVBOs");
-}
-
-// ====================================================================
-
-double angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm){
-    double angle = acos( glm::dot(a,b) / (glm::length(a) * glm::length(b)) );
-    glm::vec3 c = glm::cross(norm,a);
-    if(glm::dot(c,b) < 0)
-        angle = -angle;
-
-    return angle;
-}
-
-// ====================================================================
-// ====================================================================
+// Update Simulation
 void ParticleSystem::update(){
 
   /*
@@ -103,32 +73,41 @@ void ParticleSystem::update(){
           numParticles--;
           continue;
         }
+
         // Compute the new postion of the particle
         glm::vec3 pos = curPart->getPos();
         glm::vec3 dir = curPart->getDir();
         glm::vec3 axis = glm::vec3(1,0,0);
         glm::vec3 norm = glm::vec3(0,0,1);
-        double radianAngle = angleBetween(axis,dir,norm);
-
-        double vx = velocity * cos(radianAngle);
-        double vy = velocity * sin(radianAngle);
-
+        long double radianAngle = angleBetween(axis,dir,norm);
+        long double vx = velocity * cos(radianAngle);
+        long double vy = velocity * sin(radianAngle);
         glm::vec3 newPos( pos.x + (vx * timestep) , pos.y + (vy * timestep), 0 );
+
+        // Set the new position
+        // Caution from now on on curPart->getPos() gives newPos
         curPart->setPos(newPos);
 
 
         // Do we bounce, depends if we assume open space or closed space
+        long double distanceFromCenter = glm::distance(newPos,curPart->getCenter());
         if(isBounded){
+
+
           // hit a vertical wall
           if(newPos.x < 0 || 1 < newPos.x ){
+            glm::vec3 newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
             glm::vec3 newDir(-1*dir.x, dir.y,0);
             curPart->setDir(newDir);
+            curPart->setCenter(newCenter);
           }
 
           // Hit a horizontal wall
           if(newPos.y < 0 || 1 < newPos.y ){
+            glm::vec3 newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+PI_CONST,newPos);
             glm::vec3 newDir(dir.x, -1*dir.y, 0);
             curPart->setDir(newDir);
+            curPart->setCenter(newCenter);
           }
 
         }//bounded
@@ -144,62 +123,76 @@ void ParticleSystem::update(){
         bool rightOutOfRange = false;
         bool leftOutOfRange  = false;
 
-        // Check to the right if not at head
+        // Check to the right if not at head also moves particles
         if(itr != curRing->begin()){
           std::list<Particle*>::iterator itrRight = itr; itrRight--;
           Particle* rightPart = *itrRight;
           rightOutOfRange = 5 * particleRadius < glm::distance(curPart->getPos(), rightPart->getPos());
+
+        }else{
+          // Check with the tail
+          std::list<Particle*>::iterator itrRight = curRing->end(); itrRight--;
+          Particle* rightPart = *itrRight;
+          rightOutOfRange = 5 * particleRadius < glm::distance(curPart->getPos(), rightPart->getPos());
         }
 
-        // Check to the left if not at the tail
-        std::list<Particle*>::iterator itrLeft = itr; itrLeft++;
-        if(itrLeft != curRing->end()){
-          Particle* leftPart = *itrLeft;
-          leftOutOfRange = 5 * particleRadius  < glm::distance(curPart->getPos(), leftPart->getPos());
-        }
 
         // If either left or right is to far, split mofo!
         if(leftOutOfRange || rightOutOfRange){
-          //std::cout << "Generating Children" << std::endl;
+
 
           // Get offset
-          double angleBetweenParts = (2*PI_CONST)/clusterSize;
-          double offsetAngle = angleBetweenParts/4.0;
+          long double angleBetweenParts = (2*PI_CONST)/clusterSize;
+          long double offsetAngle = angleBetweenParts/(3.0 * (curPart->getSplit() + 1)) ;
+          // std::cout << curPart->getSplit()+1 << " " << distanceFromCenter << std::endl;
 
-          // Generate left particle
-          double radianAngleRight = angleBetween(axis,dir,norm) - offsetAngle;
-          double vxRight = velocity * cos(radianAngleRight);
-          double vyRight = velocity * sin(radianAngleRight);
-          glm::vec3 newPosRight( pos.x + (vxRight * timestep) , pos.y + (vyRight * timestep), 0 );
-          glm::vec3 dirRight(newPosRight - pos);
-          dirRight = glm::normalize(dirRight);
-          Particle * newRightPart = new Particle(newPosRight,dirRight,curPart->getAmp()/3.0);
-
-
-          // Generate right particle
-          double radianAngleLeft = angleBetween(axis,dir,norm) + offsetAngle;
-          double vxLeft = velocity * cos(radianAngleLeft);
-          double vyLeft = velocity * sin(radianAngleLeft);
-          glm::vec3 newPosLeft( pos.x + (vxLeft * timestep) , pos.y + (vyLeft * timestep),0 );
-          glm::vec3 dirLeft(newPosLeft - pos);
+          // Generate left Particle
+          long double radianAngleLeft = radianAngle + offsetAngle;
+          glm::vec3 newPosLeft = getPosCircle(distanceFromCenter,radianAngleLeft,curPart->getCenter());
+          glm::vec3 dirLeft(newPosLeft-curPart->getCenter());
           dirLeft = glm::normalize(dirLeft);
-          Particle * newLeftPart = new Particle(newPosLeft,dirLeft,curPart->getAmp()/3.0);
+          Particle * newLeftPart = new Particle(newPosLeft,dirLeft,curPart->getAmp()/3.0, curPart->getSplit()+1);
+          newLeftPart->setCenter(curPart->getCenter());
+
+          // Generate Right Particle
+          long double radianAngleRight = radianAngle - offsetAngle;
+          glm::vec3 newPosRight = getPosCircle(distanceFromCenter,radianAngleRight,curPart->getCenter());
+          glm::vec3 dirRight(newPosRight-curPart->getCenter());
+          dirRight = glm::normalize(dirRight);
+          Particle * newRightPart = new Particle(newPosRight,dirRight,curPart->getAmp()/3.0, curPart->getSplit()+1);
+          newRightPart->setCenter(curPart->getCenter());
 
           // Reduce amplage of middle particle
           curPart->setAmp(curPart->getAmp()/3.0);
+          curPart->setSplit(curPart->getSplit()+1);
+
+          /*
+          // Debug ================================================
+          std::cout << "Debug ============================================= " << std::endl;
+          // std::cout << "Left Angle " << radianAngleLeft << "-> " << newPosLeft.x <<", "<< newPosLeft.y << std::endl;
+          // std::cout << "Same Angle " << radianAngle << "-> " << newPos.x <<", "<< newPos.y << std::endl;
+          // std::cout << "Righ Angle " << radianAngleRight << "-> " << newPosRight.x <<", "<< newPosRight.y << std::endl;
+          newLeftPart->print();
+          curPart->print();
+          newRightPart->print();
+          std::cout << std::endl;
+          // End Debug ============================================
+          */
+
 
           // Erease from list the old (middle entry) and add to Ring Structure
           // I have the element after
           itr = curRing->erase(itr);
 
           // Pushes the other values back
-          curRing->insert(itr,newRightPart);
-          curRing->insert(itr,curPart);
-          curRing->insert(itr,newLeftPart);
+          itr = curRing->insert(itr,newLeftPart);
+          itr = curRing->insert(itr,curPart);
+          itr = curRing->insert(itr,newRightPart);
           numParticles += 2;
 
           // Move back one so im at left newest
-          itr--;
+          itr++;
+          itr++;
 
         }// Genereate child optinal
 
@@ -211,6 +204,102 @@ void ParticleSystem::update(){
     setupVBOs();
 }
 
+// ====================================================================
+// Setup Functions
+void ParticleSystem::setupVBOs() {
+  HandleGLError("enter setupVBOs");
+  setupPoints();
+  HandleGLError("leaving setupVBOs");
+}
+
+void ParticleSystem::setupPoints() {
+
+  HandleGLError("enter setupPoints");
+
+  // allocate space for the data
+
+  VertexPosColor* points = new VertexPosColor[numParticles];
+
+  for(unsigned int i = 0; i < particleRings.size(); i++){
+
+     int index = 0;
+     // Get the pointer to a ring stored in particleRings
+     std::list<Particle*> * curRing = & particleRings[i];
+     std::list<Particle*>::iterator itr;
+
+     // For each particle get the position and save it
+     for (itr = curRing->begin(); itr != curRing->end(); ++itr){
+       Particle* curPart = *itr;
+       glm::vec3 pos_2d = curPart->getPos();
+       glm::vec4 pos_3d(pos_2d.x,pos_2d.y,pos_2d.z,1);
+       points[index++] = VertexPosColor(pos_3d);
+     }
+   }
+
+
+  // create a pointer for the VBO
+  glGenVertexArrays(1, &VaoId);
+  glBindVertexArray(VaoId);
+
+  // Where we are storing these points
+  glGenBuffers(1, &VboId);
+  glBindBuffer(GL_ARRAY_BUFFER,VboId);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * numParticles ,points,GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
+
+  // increase the size of the points slightly
+  glPointSize(3.0);
+
+  delete [] points;
+  HandleGLError("leaving setupPoints");
+}
+
+// ====================================================================
+// Render Functions
+void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
+  HandleGLError("enter drawVBOs");
+  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &m[0][0]);
+  drawPoints();
+  HandleGLError("leaving drawVBOs");
+}
+
+void ParticleSystem::drawPoints() const {
+  HandleGLError("enter drawPoints");
+  // glDrawArrays draws the points
+  glDrawArrays(
+              GL_POINTS,    // The primitive you want to draw it as
+              0,            // The start offset
+              numParticles);  // The number of points
+
+  HandleGLError("leaving drawPoints");
+}
+
+void ParticleSystem::cleanupVBOs() {
+  HandleGLError("enter cleanupVBOs");
+  cleanupPoints();
+  HandleGLError("leaving cleanupVBOs");
+}
+
+void ParticleSystem::cleanupPoints() {
+  glDeleteBuffers(1, &VaoId);
+  glDeleteBuffers(1, &VboId);
+}
+
+
+// ====================================================================
+// Utility Functions
+double ParticleSystem::angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm){
+    double angle = acos( glm::dot(a,b) / (glm::length(a) * glm::length(b)) );
+    glm::vec3 c = glm::cross(norm,a);
+    if(glm::dot(c,b) < 0)
+        angle = -angle;
+
+    return angle;
+}
 
 void ParticleSystem::createWave(double x, double y){
   /*
@@ -245,7 +334,9 @@ void ParticleSystem::createWave(double x, double y){
       glm::vec3 pos_3d(pos_2d.x, pos_2d.y, 0.0f);
       glm::vec3 dir_3d(dir_2d.x, dir_2d.y, 0.0f);
 
-      Particle * newPart = new Particle(pos_3d,dir_3d,initAmps);
+      Particle * newPart = new Particle(pos_3d,dir_3d,initAmps,0);
+
+      newPart->setCenter(glm::vec3(center.x,center.y,0));
 
       // Debug
       // newPart->print();
@@ -262,81 +353,12 @@ void ParticleSystem::createWave(double x, double y){
 
 }
 
-// ====================================================================
-// ====================================================================
-void ParticleSystem::cleanupVBOs() {
-  HandleGLError("enter cleanupVBOs");
-  cleanupPoints();
-  HandleGLError("leaving cleanupVBOs");
+glm::vec3 ParticleSystem::getPosCircle(double radius, double radAngle, glm::vec3 center){
+  /*
+   * Input : center of a circle, the angle relative to X axis, and radius
+   * Output: Point on a circle with those attrabutes
+   * Asumpt: radAngle is radians and like a unit circle, 2D
+   * SideEf: None
+   */
+    return glm::vec3(center.x + radius * cos(radAngle), center.y + radius * sin(radAngle),0);
 }
-
-// ====================================================================
-// ====================================================================
-
-void ParticleSystem::setupPoints() {
-
-  HandleGLError("enter setupPoints");
-
-  // allocate space for the data
-
-  VertexPosColor* points = new VertexPosColor[numParticles];
-
-  for(unsigned int i = 0; i < particleRings.size(); i++){
-
-     int index = 0;
-     // Get the pointer to a ring stored in particleRings
-     std::list<Particle*> * curRing = & particleRings[i];
-     std::list<Particle*>::iterator itr;
-
-     // For each particle get the position and save it
-     for (itr = curRing->begin(); itr != curRing->end(); ++itr){
-       Particle* curPart = *itr;
-       glm::vec3 pos_2d = curPart->getPos();
-       glm::vec4 pos_3d(pos_2d.x,pos_2d.y,pos_2d.z,1);
-       points[index++] = VertexPosColor(pos_3d);
-     }
-   }
-
-
-  // create a pointer for the VBO
-  glGenVertexArrays(1, &VaoId);
-  glBindVertexArray(VaoId);
-
-  // Where we are storing these points
-  glGenBuffers(1, &VboId);
-  glBindBuffer(GL_ARRAY_BUFFER,VboId); 
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * numParticles ,points,GL_STATIC_DRAW);
-
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
-  
-  // increase the size of the points slightly
-  glPointSize(1.0);
-
-  delete [] points;
-  HandleGLError("leaving setupPoints");
-}
-
-void ParticleSystem::drawPoints() const {
-  HandleGLError("enter drawPoints");
-  // glDrawArrays draws the points
-  glDrawArrays(
-              GL_POINTS,    // The primitive you want to draw it as
-              0,            // The start offset
-              numParticles);  // The number of points
-
-  HandleGLError("leaving drawPoints");
-}
-
-// ====================================================================
-// ====================================================================
-
-void ParticleSystem::cleanupPoints() {
-  glDeleteBuffers(1, &VaoId);
-  glDeleteBuffers(1, &VboId);
-}
-
-// ====================================================================
-// ====================================================================
