@@ -50,7 +50,7 @@ Approximate time spent this week:<br>
  1.0 hrs   Analysis & Validation<br>
  0.0 hrs   Visualization Revision<br>
  0.0 hrs   Presentation<br>
-...........................................
+...........................................<br>
  21.0 hrs   Total time spent<br>
 
 
@@ -62,7 +62,7 @@ TOTAL time spent this semester:<br>
  0.0 hrs   Analysis & Validation<br>
  0.0 hrs   Visualization Revision<br>
  0.0 hrs   Presentation<br>
-...........................................
+...........................................<br>
  105.0 hrs   Total time spent<br>
 
 
