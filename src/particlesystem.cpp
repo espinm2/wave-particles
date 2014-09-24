@@ -14,7 +14,7 @@ const long double PI_CONST  = atan(1)*4;
 // Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
   numParticles = 0;
-  timestep = .00005;
+  timestep = .000005;
   isBounded = true;
   initAmps  = 10000.0;
   minAmps   = 0.1;

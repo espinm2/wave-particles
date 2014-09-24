@@ -25,7 +25,8 @@ public:
 	iters = atoi(argv[i]);
       } else if (argv[i] == std::string("-size")) {
 	i++; assert (i < argc); 
-	width = height = atoi(argv[i]);
+    width = atoi(argv[i++]);
+    height = atoi(argv[i]);
       } else {
 	std::cout << "ERROR: unknown command line argument " 
 		  << i << ": '" << argv[i] << "'" << std::endl;

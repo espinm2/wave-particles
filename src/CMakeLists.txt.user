@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.2.1, 2014-09-24T10:58:34. -->
+<!-- Written by QtCreator 3.2.1, 2014-09-24T12:30:42. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -207,7 +207,7 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">/home/espinm2/Code/wave-particles/build/ifs -size 512x512</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">/home/espinm2/Code/wave-particles/build/ifs -size 126 512</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/usr/bin/optirun</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">/home/espinm2/Code/wave-particles/src</value>
