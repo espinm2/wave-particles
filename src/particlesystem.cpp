@@ -9,7 +9,6 @@
 
 // Global Varibles
 const long double PI_CONST  = atan(1)*4;
-const bool SIMULT = true;
 
 // ====================================================================
 // Constructor
@@ -93,7 +92,6 @@ void ParticleSystem::update(){
         long double distanceFromCenter = glm::distance(newPos,curPart->getCenter());
         if(isBounded){
 
-
           // hit a vertical wall
           if(newPos.x < 0 || 1 < newPos.x ){
             glm::vec3 newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
@@ -136,10 +134,8 @@ void ParticleSystem::update(){
           rightOutOfRange = 5 * particleRadius < glm::distance(curPart->getPos(), rightPart->getPos());
         }
 
-
         // If either left or right is to far, split mofo!
         if(leftOutOfRange || rightOutOfRange){
-
 
           // Get offset
           long double angleBetweenParts = (2*PI_CONST)/clusterSize;
@@ -232,7 +228,9 @@ void ParticleSystem::setupPoints() {
        Particle* curPart = *itr;
        glm::vec3 pos_2d = curPart->getPos();
        glm::vec4 pos_3d(pos_2d.x,pos_2d.y,pos_2d.z,1);
-       points[index++] = VertexPosColor(pos_3d);
+       double split = (2*curPart->getSplit()*curPart->getSplit())/255.0;
+       glm::vec4 color(1,1-split,.2, 1);
+       points[index++] = VertexPosColor(pos_3d, color);
      }
    }
 

@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
   ParticleSystem partsys(&args);
   GLCanvas::initialize(&args,&partsys);
   
-  glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
   glEnable(GL_CULL_FACE);
