@@ -3,15 +3,11 @@ HOMEWORK 3: Custom + High Dimensional Data
 
 NAME:  < Max Espinoza >
 -----------------------
-
-Assignment # <4>
-
-
+Assignment # 4
 Teammates:
-<None>
 
 Other Collaboration:
-<OpenGL SuperBible + Online Resources>
+OpenGL SuperBible + Online Resources
 
 
 ### Assignment Writeup:
@@ -36,13 +32,14 @@ I can see with this visualization that there are particle with less splits count
 
 
 ### Files
-Description of submitted files (images/video/code/etc):
+Description of submitted files (images/video/code/etc): <br>
+particlesystem.h and particlesystem.cpp are both used to hold and update particles in the created simulation.<br>
+particle.h contains the actual particle and its attributes. <br>
+glCanvas.cpp and glCanvas.h contain all the window manager functions and initial setup for our program.<br>
+main.cpp contains the main render loop.<br>
+All images are to examples of the visualization working<br>
 
-particlesystem.h and particlesystem.cpp are both used to hold and update particles in the created simulation.
-particle.h contains the actual particle and its attributes. 
-glCanvas.cpp and glCanvas.h contain all the window manager functions and initial setup for our program.
-main.cpp contains the main render loop.
-All images are to examples of the visualization working
+
 
 ### Times
 Approximate time spent this week:
