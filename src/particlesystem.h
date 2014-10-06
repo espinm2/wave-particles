@@ -35,6 +35,9 @@ public:
   glm::vec3 getPosCircle(double radius, double radAngle, const glm::vec3 center);
   unsigned int getSize(){ return numParticles; }
   double angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm);
+  bool outOfRange(Particle * p);
+  std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator); //TODO
+  void moveParticle(Particle * p); //TODO
 
 private:
 
@@ -48,8 +51,8 @@ private:
   GLuint VaoId;
   GLuint VboId;
 
-  std::vector<std::list<Particle*> > particleRings; // Where we keep particles
-  unsigned int numParticles;                        // Update to keep accurate
+  std::vector<Particle*> particleRings; // Where we keep particles
+  unsigned int numParticles;            // Update to keep accurate
 
   // Tune to change simulation behavior
   double timestep;

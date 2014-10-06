@@ -31,174 +31,68 @@ void ParticleSystem::update(){
 
   /*
    * Input : None
-   * Output: This function will move all the particles by a timestep
+   * Output: This function will update our particle simuations
    * Asumpt: There are particles to move
-   * SideEf: Updates postition of particles
+   * SideEf: Updates postition of particles/ removes particles
    */
 
-    // For each ring of particles
-    for(unsigned int i=0; i < particleRings.size(); i++){
+  std::vector<Particle *> newParticles;
 
-      std::list<Particle*> * curRing = & particleRings[i]; // Get pointer to that ring
-      std::list<Particle*>::iterator itr;                  // Get iterator for this ring
+  std::vector<Particle *>::iterator iter;
+  for(iter = particleRings.begin(); iter != particleRings;){
 
-      // Kill the ring if there is less then 3 paricles (FIXME)
-      if(curRing->size() < clusterSize){
-          for ( itr = curRing->begin(); itr != curRing->end(); ){
-                delete * itr; // For each particle we delte it
-                itr = curRing->erase(itr);
-          }
+     Particle * curPart = (*iter);
 
-          // Get rid of it from the main vector of list
-          particleRings.erase(particleRings.begin()+i);
-          i--;
-          continue; // Move on to the next item
+    // Are we below a threhold just kill and move to another
+    if(curPart->getAmp() < minAmps){
 
-      }// kill ring
+      // Kill this partcile and move to next
+      iter = removeParticle(iter);
+      continue;
+    }
 
+    // Particles are beyond a threshold init a split
+    if(outOfRange(curPart)){
 
-      // For each particle
-      for (itr = curRing->begin(); itr != curRing->end(); ++itr){
+        // Create 3 new particles and assign them
+        Particle * a = new Particle;
+        Particle * b = new Particle;
+        Particle * c = new Particle;
 
-        // Pointer to the particle
-        Particle* curPart = *itr;
+        curPart->splitParticle(a,b,c);
 
-        // Are we below a threhold just kill and move to another
-        if(curPart->getAmp() < minAmps){
+        // Move them a timestep
+        moveParticle(a);
+        moveParticle(b);
+        moveParticle(c);
 
-          // I have the element after
-          itr = curRing->erase(itr--);
-          delete curPart;
-          numParticles--;
-          continue;
-        }
-
-        // Compute the new postion of the particle
-        glm::vec3 pos = curPart->getPos();
-        glm::vec3 dir = curPart->getDir();
-        glm::vec3 axis = glm::vec3(1,0,0);
-        glm::vec3 norm = glm::vec3(0,0,1);
-        long double radianAngle = angleBetween(axis,dir,norm);
-        long double vx = velocity * cos(radianAngle);
-        long double vy = velocity * sin(radianAngle);
-        glm::vec3 newPos( pos.x + (vx * timestep) , pos.y + (vy * timestep), 0 );
-
-        // Set the new position
-        // Caution from now on on curPart->getPos() gives newPos
-        curPart->setPos(newPos);
+        // Push them into newParticles list for l8 addition
+        newParticles.push_back(a);
+        newParticles.push_back(b);
+        newParticles.push_back(c);
 
 
-        // Do we bounce, depends if we assume open space or closed space
-        long double distanceFromCenter = glm::distance(newPos,curPart->getCenter());
-        if(isBounded){
+        // Remove and kill the current particle
+        iter = removeParticle(iter);
 
-          // hit a vertical wall
-          if(newPos.x < 0 || 1 < newPos.x ){
-            glm::vec3 newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
-            glm::vec3 newDir(-1*dir.x, dir.y,0);
-            curPart->setDir(newDir);
-            curPart->setCenter(newCenter);
-          }
+    }else{
 
-          // Hit a horizontal wall
-          if(newPos.y < 0 || 1 < newPos.y ){
-            glm::vec3 newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+PI_CONST,newPos);
-            glm::vec3 newDir(dir.x, -1*dir.y, 0);
-            curPart->setDir(newDir);
-            curPart->setCenter(newCenter);
-          }
+        // Update postiton and move to next particle
+        moveParticle(curPart);
+        iter++;
+    }
 
-        }//bounded
-
-        // Debug ///////////////////////////////
-        // curPart->print();
-        // std::cout << "vx: " << vx << std::endl;
-        // std::cout << "vy: " << vy << std::endl;
-        // std::cout << "rad"  << radianAngle << std::endl;
-        // End Debug ///////////////////////////////
-
-        // Are we far away from other points enough to split?
-        bool rightOutOfRange = false;
-        bool leftOutOfRange  = false;
-
-        // Check to the right if not at head also moves particles
-        if(itr != curRing->begin()){
-          std::list<Particle*>::iterator itrRight = itr; itrRight--;
-          Particle* rightPart = *itrRight;
-          rightOutOfRange = 5 * particleRadius < glm::distance(curPart->getPos(), rightPart->getPos());
-
-        }else{
-          // Check with the tail
-          std::list<Particle*>::iterator itrRight = curRing->end(); itrRight--;
-          Particle* rightPart = *itrRight;
-          rightOutOfRange = 5 * particleRadius < glm::distance(curPart->getPos(), rightPart->getPos());
-        }
-
-        // If either left or right is to far, split mofo!
-        if(leftOutOfRange || rightOutOfRange){
-
-          // Get offset
-          long double angleBetweenParts = (2*PI_CONST)/clusterSize;
-          long double offsetAngle = angleBetweenParts/(3.0 * (curPart->getSplit() + 1)) ;
-          // std::cout << curPart->getSplit()+1 << " " << distanceFromCenter << std::endl;
-
-          // Generate left Particle
-          long double radianAngleLeft = radianAngle + offsetAngle;
-          glm::vec3 newPosLeft = getPosCircle(distanceFromCenter,radianAngleLeft,curPart->getCenter());
-          glm::vec3 dirLeft(newPosLeft-curPart->getCenter());
-          dirLeft = glm::normalize(dirLeft);
-          Particle * newLeftPart = new Particle(newPosLeft,dirLeft,curPart->getAmp()/3.0, curPart->getSplit()+1);
-          newLeftPart->setCenter(curPart->getCenter());
-
-          // Generate Right Particle
-          long double radianAngleRight = radianAngle - offsetAngle;
-          glm::vec3 newPosRight = getPosCircle(distanceFromCenter,radianAngleRight,curPart->getCenter());
-          glm::vec3 dirRight(newPosRight-curPart->getCenter());
-          dirRight = glm::normalize(dirRight);
-          Particle * newRightPart = new Particle(newPosRight,dirRight,curPart->getAmp()/3.0, curPart->getSplit()+1);
-          newRightPart->setCenter(curPart->getCenter());
-
-          // Reduce amplage of middle particle
-          curPart->setAmp(curPart->getAmp()/3.0);
-          curPart->setSplit(curPart->getSplit()+1);
-
-          /*
-          // Debug ================================================
-          std::cout << "Debug ============================================= " << std::endl;
-          // std::cout << "Left Angle " << radianAngleLeft << "-> " << newPosLeft.x <<", "<< newPosLeft.y << std::endl;
-          // std::cout << "Same Angle " << radianAngle << "-> " << newPos.x <<", "<< newPos.y << std::endl;
-          // std::cout << "Righ Angle " << radianAngleRight << "-> " << newPosRight.x <<", "<< newPosRight.y << std::endl;
-          newLeftPart->print();
-          curPart->print();
-          newRightPart->print();
-          std::cout << std::endl;
-          // End Debug ============================================
-          */
+  } //forloop
 
 
-          // Erease from list the old (middle entry) and add to Ring Structure
-          // I have the element after
-          itr = curRing->erase(itr);
+  // Add into the main vector those new particles
+  for( int i = 0; i < newParticles.size(); i++)
+      particleRings.push_back(newParticles[i]);
 
-          // Pushes the other values back
-          itr = curRing->insert(itr,newLeftPart);
-          itr = curRing->insert(itr,curPart);
-          itr = curRing->insert(itr,newRightPart);
-          numParticles += 2;
+  // Recreate the VBOs
+  setupVBOs();
 
-          // Move back one so im at left newest
-          itr++;
-          itr++;
-
-        }// Genereate child optinal
-
-      }//ringloop for each particle
-
-    }//vectorloop for each ring
-
-    // You need to set up these points again
-    setupVBOs();
-}
+}//update
 
 // ====================================================================
 // Setup Functions
@@ -214,24 +108,23 @@ void ParticleSystem::setupPoints() {
 
   // allocate space for the data
 
-  VertexPosColor* points = new VertexPosColor[numParticles];
+  VertexPosColor* points = new VertexPosColor[particleRings.size()];
 
   for(unsigned int i = 0; i < particleRings.size(); i++){
 
-     int index = 0;
-     // Get the pointer to a ring stored in particleRings
-     std::list<Particle*> * curRing = & particleRings[i];
-     std::list<Particle*>::iterator itr;
+     Particle* curPart = particleRadius[i];
 
-     // For each particle get the position and save it
-     for (itr = curRing->begin(); itr != curRing->end(); ++itr){
-       Particle* curPart = *itr;
-       glm::vec3 pos_2d = curPart->getPos();
-       glm::vec4 pos_3d(pos_2d.x,pos_2d.y,pos_2d.z,1);
-       double split = (2*curPart->getSplit()*curPart->getSplit())/255.0;
-       glm::vec4 color(1,1-split,.2, 1);
-       points[index++] = VertexPosColor(pos_3d, color);
-     }
+     // Getting posititons
+     glm::vec3 pos_2d = curPart->getPos();
+     glm::vec4 pos_3d(pos_2d,1);
+
+     // Color visualzations
+     double split = (2*curPart->getSplit()*curPart->getSplit())/255.0;
+     glm::vec4 color(1,1-split,.2, 1);
+
+     // Adding to VBO
+     points[index++] = VertexPosColor(pos_3d, color);
+
    }
 
 
@@ -313,8 +206,6 @@ void ParticleSystem::createWave(double x, double y){
     // Create a cluster of wave particles when you click
     double radianAngle = ( 2 * PI_CONST ) / clusterSize;              // Debug 1.570796327
 
-    // Create the dslist that will hold this list
-    std::list<Particle*> ring;
 
     // For each particle I will make
     for(unsigned int i = 0; i < clusterSize; i++){
@@ -342,12 +233,9 @@ void ParticleSystem::createWave(double x, double y){
       // std::cout << dx << " " << dy << std::endl;
 
       // Add to collection
-      ring.push_back(newPart);
+      particleRings.push_back(newPart);
       numParticles++;
     }
-
-    // Push this newly made ring into my storage
-    particleRings.push_back(ring);
 
 }
 
