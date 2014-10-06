@@ -3,9 +3,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/geometric.hpp>// glm::normalize, glm::dot, glm::reflect
 
-
 #include "particlesystem.h"
 #include "argparser.h"
+
+typedef std::vector <Particle *> PartIter;
 
 // Global Varibles
 const long double PI_CONST  = atan(1)*4;
@@ -92,7 +93,8 @@ void ParticleSystem::update(){
   // Recreate the VBOs
   setupVBOs();
 
-}//update
+}
+
 
 // ====================================================================
 // Setup Functions
@@ -183,7 +185,96 @@ void ParticleSystem::cleanupPoints() {
 
 // ====================================================================
 // Utility Functions
+
+void ParticleSystem::moveParticle(Particle *curPart){
+  /* Input : A single particle
+  *  Output: Nothing
+  *  Asumpt: A valid particle
+  *  SideEf: Changes the pos and maybe dir of a particle given
+  */
+
+  // Change position of particle
+  glm::vec3 pos = curPart->getPos();
+  glm::vec3 dir = curPart->getDir();
+
+  glm::vec3 axis = glm::vec3(1,0,0);
+  glm::vec3 norm = glm::vec3(0,0,1);
+
+  long double radianAngle = angleBetween(axis,dir,norm);
+
+  long double vx = velocity * cos(radianAngle);
+
+  long double vy = velocity * sin(radianAngle);
+
+  glm::vec3 newPos( pos.x + (vx * timestep) , pos.y + (vy * timestep), 0 );
+
+  curPart->setPos(newPos);
+
+  // Change direction of particle
+  if(isBounded){
+
+    long double distanceFromCenter = glm::distance(newPos,curPart->getCenter());
+
+    // hit a vertical wall
+    if(newPos.x < 0 || 1 < newPos.x ){
+      glm::vec3 newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
+      glm::vec3 newDir(-1*dir.x, dir.y,0);
+      curPart->setDir(newDir);
+      curPart->setCenter(newCenter);
+    }
+
+    // Hit a horizontal wall
+    if(newPos.y < 0 || 1 < newPos.y ){
+      glm::vec3 newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+PI_CONST,newPos);
+      glm::vec3 newDir(dir.x, -1*dir.y, 0);
+      curPart->setDir(newDir);
+      curPart->setCenter(newCenter);
+    }
+  }
+}
+
+bool ParticleSystem::outOfRange(Particle * p){
+  /* Input : A single particle
+   * Output: True if you don't have buddy, false if you do
+   * Asumpt: Valid iterator
+   * SideEf: Delete from current particle from main vec and heap
+   */
+
+    glm::vec3 pos = p->getPos();
+    double threshold = 2 * this->particleRadius; // TODO change to real value
+
+    for( int i = 0; i < particleRings.size(); i++ ){
+
+        // If I find a buddy close enough to me
+        if( glm::distance(particleRings[i]->getPos(), pos) < threshold )
+            return false;
+
+     }
+
+    // I have no buddies
+    return true;
+}
+
+PartIter ParticleSystem::removeParticle(PartIter iter){
+  /* Input : Iterator to a particle in the main vector
+   * Output: The iterator the particle after the one given
+   * Asumpt: Valid iterator
+   * SideEf: Delete from current particle from main vec and heap
+   */
+
+    Particle * p = *iter;
+    PartIter newIter = particleRings.erase(iter);
+    delete p;
+    return newIter;
+
+}
+
+
 double ParticleSystem::angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm){
+    /*
+     *  Input : Two vectors and the normal between them
+     *  Output: The angle between both vectors in the range of [-PI , PI]
+     */
     double angle = acos( glm::dot(a,b) / (glm::length(a) * glm::length(b)) );
     glm::vec3 c = glm::cross(norm,a);
     if(glm::dot(c,b) < 0)

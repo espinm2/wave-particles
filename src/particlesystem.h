@@ -36,8 +36,8 @@ public:
   unsigned int getSize(){ return numParticles; }
   double angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm);
   bool outOfRange(Particle * p);
-  std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator); //TODO
-  void moveParticle(Particle * p); //TODO
+  std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator);
+  void moveParticle(Particle * p);
 
 private:
 
