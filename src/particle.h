@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <cmath>
 
 class Particle
 {
@@ -19,11 +20,12 @@ class Particle
       }
 
       // constructor
-      Particle(const glm::vec3 & pos, glm::vec3 & dir, double a, int s){
+      Particle(const glm::vec3 & pos, glm::vec3 & dir, glm::vec3 c, double a, int s){
           position  = pos;
           direction = dir;
           ampage    = a;
           splits    = s;
+          center    = c;
       }
 
       // Accessors
@@ -37,15 +39,18 @@ class Particle
       void print();
 
       // Modifiers
+      void updateParticle(const glm::vec3 & pos, glm::vec3 & dir, glm::vec3 c, double a, int s){
+          position  = pos;
+          direction = dir;
+          ampage    = a;
+          splits    = s;
+          center    = c;
+      }
       void setCenter(const glm::vec3 & pos){ center = pos; }
       void setPos(const glm::vec3 & pos){ position = pos; }
       void setDir(const glm::vec3 & dir){ direction = dir; }
       void setAmp(double a) { ampage = a; }
       void setSplit(int s) { splits = s; }
-
-      // Sim Methods
-      void splitParticle(Particle * a, Particle * b, Particle * c); //TODO
-
 
 private:
 
@@ -78,10 +83,6 @@ void Particle::print(){
   std::cout << "cen (" << center.x << ", " << center.y << ", " <<  center.z << ")"<< std::endl;
   std::cout << "amp " << ampage << std::endl;
 
-}
-
-void Particle::splitParticle(Particle * a, Particle * b, Particle * c){
-    // TODO implement
 }
 
 

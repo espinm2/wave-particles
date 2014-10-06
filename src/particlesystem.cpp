@@ -186,6 +186,54 @@ void ParticleSystem::cleanupPoints() {
 // ====================================================================
 // Utility Functions
 
+void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b, Particle *c){
+
+  /*
+   * Input : None
+   * Output: This function will assign the attrubutes of 3 particles made after a split
+   * Asumpt: Valid particle made and are on the heap and main vec
+   * SideEf: None
+   */
+
+  // Get the offset angle
+  long double angleBetweenParticles = ( 2 * M_PI ) / clusterSize;
+  long double offsetAngle = angleBetweenParticles / (3.0 * p->getSplit() + 1);
+
+  // Left Particle
+  long double radianAngleLeft = radianAngle + offsetAngle;
+  glm::vec3 newPosLeft = getPosCircle(distanceFromCenter,radianAngleLeft,curPart->getCenter());
+  glm::vec3 dirLeft(newPosLeft-curPart->getCenter());
+  dirLeft = glm::normalize(dirLeft);
+
+  a->updateParticle(
+    newPosLeft,
+    dirLeft,
+    curPart->getCenter(),
+    curPart->getAmp()/3.0,
+    curPart->getSplit()+1);
+
+  // Right Particle
+  long double radianAngleRight = radianAngle - offsetAngle;
+  glm::vec3 newPosRight = getPosCircle(distanceFromCenter,radianAngleRight,curPart->getCenter());
+  glm::vec3 dirRight(newPosRight-curPart->getCenter());
+  dirRight = glm::normalize(dirRight);
+
+  b->updateParticle(
+    newPosRight,
+    dirRight,
+    curPart->getCenter(),
+    curPart->getAmp()/3.0,
+    curPart->getSplit()+1);
+
+  // Center particle == Orginal curPart
+  c->updateParticle(
+     curPart->getPos(),
+     curPart->getDir(),
+     curPart->getCenter(),
+     curPart->getAmp()/3.0,
+     curPart->getSplit()+1);
+}
+
 void ParticleSystem::moveParticle(Particle *curPart){
   /* Input : A single particle
   *  Output: Nothing
@@ -234,25 +282,25 @@ void ParticleSystem::moveParticle(Particle *curPart){
 }
 
 bool ParticleSystem::outOfRange(Particle * p){
-  /* Input : A single particle
-   * Output: True if you don't have buddy, false if you do
-   * Asumpt: Valid iterator
-   * SideEf: Delete from current particle from main vec and heap
-   */
+ /* Input : A single particle
+  * Output: True if you don't have buddy, false if you do
+  * Asumpt: Valid iterator
+  * SideEf: Delete from current particle from main vec and heap
+  */
 
-    glm::vec3 pos = p->getPos();
-    double threshold = 2 * this->particleRadius; // TODO change to real value
+  glm::vec3 pos = p->getPos();
+  double threshold = 2 * this->particleRadius; // TODO change to real value
 
-    for( int i = 0; i < particleRings.size(); i++ ){
+  for( int i = 0; i < particleRings.size(); i++ ){
 
-        // If I find a buddy close enough to me
-        if( glm::distance(particleRings[i]->getPos(), pos) < threshold )
-            return false;
+      // If I find a buddy close enough to me
+      if( glm::distance(particleRings[i]->getPos(), pos) < threshold )
+          return false;
 
-     }
+   }
 
-    // I have no buddies
-    return true;
+  // I have no buddies
+  return true;
 }
 
 PartIter ParticleSystem::removeParticle(PartIter iter){
@@ -268,7 +316,6 @@ PartIter ParticleSystem::removeParticle(PartIter iter){
     return newIter;
 
 }
-
 
 double ParticleSystem::angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm){
     /*

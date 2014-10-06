@@ -38,6 +38,7 @@ public:
   bool outOfRange(Particle * p);
   std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator);
   void moveParticle(Particle * p);
+  void splitParticle(Particle * p, Particle * a, Particle * b, Particle * c);
 
 private:
 
