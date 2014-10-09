@@ -37,11 +37,11 @@ void GLCanvas::initialize(ArgParser *_args, ParticleSystem *_ifs) {
   partsys = _ifs;
 
   // initial placement of camera 
-  glm::vec3 camera_position =   glm::vec3(0.5, 0.5, 5.0);
-  glm::vec3 point_of_interest = glm::vec3(0.5, 0.5, 0.5);
+  glm::vec3 camera_position =   glm::vec3(25, 25, 50);
+  glm::vec3 point_of_interest = glm::vec3(25, 25, 0);
   glm::vec3 up = glm::vec3(0,1,0);
 #if 1
-  float size = 1;
+  float size = 25;
   camera = new OrthographicCamera(camera_position, point_of_interest, up, size);
 #else
   float angle = 25.0;

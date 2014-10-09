@@ -1,4 +1,7 @@
 #include <cassert>
+#include <cmath>
+#include <math.h>
+
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/geometric.hpp>// glm::normalize, glm::dot, glm::reflect
@@ -6,24 +9,20 @@
 #include "particlesystem.h"
 #include "argparser.h"
 
-typedef std::vector <Particle *> PartIter;
+typedef std::vector <Particle *>::iterator PartIter;
 
-// Global Varibles
-const long double PI_CONST  = atan(1)*4;
 
 // ====================================================================
 // Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
-  numParticles = 0;
-  timestep = .000005;
-  isBounded = true;
-  initAmps  = 10000.0;
-  minAmps   = 0.1;
-  velocity  = 340;
-  // velocity  = 100;
-  particleRadius = 0.01;
-  clusterRadius  = 0.001;
-  clusterSize    = 4;
+  timestep        = .001;
+  isBounded       = false;
+  initAmps        = 1000;
+  minAmps         = 10;
+  velocity        = 1;
+  particleRadius  = 2;
+  clusterRadius   = .1;
+  clusterSize     = 4;
 }
 
 // ====================================================================
@@ -37,19 +36,29 @@ void ParticleSystem::update(){
    * SideEf: Updates postition of particles/ removes particles
    */
 
+  // Hold new particles from split
   std::vector<Particle *> newParticles;
 
-  std::vector<Particle *>::iterator iter;
-  for(iter = particleRings.begin(); iter != particleRings;){
+  // Marked for removal mask, 1 == delete, 0 == keep
+  std::vector<int>deleteMask (particleRings.size(), 0);
+  unsigned int maskIndex = 0;
 
+  for(PartIter iter = particleRings.begin(); iter != particleRings.end();){
+
+
+     // This current Particle
      Particle * curPart = (*iter);
+     curPart->setOldPos(curPart->getPos());
+
 
     // Are we below a threhold just kill and move to another
     if(curPart->getAmp() < minAmps){
 
       // Kill this partcile and move to next
-      iter = removeParticle(iter);
+      deleteMask[maskIndex++] = 1;
+      iter++;
       continue;
+
     }
 
     // Particles are beyond a threshold init a split
@@ -60,7 +69,7 @@ void ParticleSystem::update(){
         Particle * b = new Particle;
         Particle * c = new Particle;
 
-        curPart->splitParticle(a,b,c);
+        splitParticle(curPart,a,b,c);
 
         // Move them a timestep
         moveParticle(a);
@@ -72,23 +81,51 @@ void ParticleSystem::update(){
         newParticles.push_back(b);
         newParticles.push_back(c);
 
+        // Debug Test ////////////////////////////
+        assert(curPart->getAmp() > a->getAmp());//
+        assert(curPart->getAmp() > b->getAmp());//
+        assert(curPart->getAmp() > c->getAmp());//
+        //  //////////////////////////////////////
+
+        // Debug Test ///////////////////
+        assert( &(*curPart) != &(*c) );//
+        //  /////////////////////////////
 
         // Remove and kill the current particle
-        iter = removeParticle(iter);
+        deleteMask[maskIndex++] = 1;
+        iter++;
+
 
     }else{
 
         // Update postiton and move to next particle
         moveParticle(curPart);
+        deleteMask[maskIndex++] = 0;
         iter++;
-    }
+    }//ifelse
 
   } //forloop
 
 
-  // Add into the main vector those new particles
-  for( int i = 0; i < newParticles.size(); i++)
-      particleRings.push_back(newParticles[i]);
+  std::vector<Particle *> updatedRings;
+
+  for( unsigned int i = 0 ; i < particleRings.size(); i++){
+
+      // Keep if 0, else delete
+      if(deleteMask[i] == 0)
+          updatedRings.push_back(particleRings[i]);
+      else
+          delete particleRings[i];
+  }
+
+
+  // Add into the main vector those new particles yet added
+  for( unsigned int i = 0; i < newParticles.size(); i++)
+      updatedRings.push_back(newParticles[i]);
+
+
+  // Update particleRings
+  this->particleRings = updatedRings;
 
   // Recreate the VBOs
   setupVBOs();
@@ -114,18 +151,30 @@ void ParticleSystem::setupPoints() {
 
   for(unsigned int i = 0; i < particleRings.size(); i++){
 
-     Particle* curPart = particleRadius[i];
+     Particle * curPart = particleRings[i];
+
 
      // Getting posititons
      glm::vec3 pos_2d = curPart->getPos();
-     glm::vec4 pos_3d(pos_2d,1);
+     glm::vec4 pos_3d(pos_2d.x, pos_2d.y, 0,1); //locked for 2d case
 
-     // Color visualzations
-     double split = (2*curPart->getSplit()*curPart->getSplit())/255.0;
-     glm::vec4 color(1,1-split,.2, 1);
+     glm::vec4 color;
+     // even
+     int split = curPart->getSplit();
+
+     if(split%3 == 0){
+         color = glm::vec4((i/(double)particleRings.size()),0,0,1);//red
+     }else if(split%3 == 1){
+         color = glm::vec4(0,0,(i/(double)particleRings.size()),1);//blue
+     } else if(split%3 == 2){
+         color = glm::vec4(0,(i/(double)particleRings.size()),0,1);//green
+     }else{
+         color = glm::vec4(0,0,0,1);//black
+     }
+
 
      // Adding to VBO
-     points[index++] = VertexPosColor(pos_3d, color);
+     points[i] = VertexPosColor(pos_3d,color);
 
    }
 
@@ -137,7 +186,7 @@ void ParticleSystem::setupPoints() {
   // Where we are storing these points
   glGenBuffers(1, &VboId);
   glBindBuffer(GL_ARRAY_BUFFER,VboId);
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * numParticles ,points,GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleRings.size(), points,GL_STATIC_DRAW);
 
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
@@ -145,7 +194,7 @@ void ParticleSystem::setupPoints() {
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
 
   // increase the size of the points slightly
-  glPointSize(3.0);
+  glPointSize(5.0);
 
   delete [] points;
   HandleGLError("leaving setupPoints");
@@ -166,7 +215,7 @@ void ParticleSystem::drawPoints() const {
   glDrawArrays(
               GL_POINTS,    // The primitive you want to draw it as
               0,            // The start offset
-              numParticles);  // The number of points
+              particleRings.size());  // The number of points
 
   HandleGLError("leaving drawPoints");
 }
@@ -192,76 +241,89 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
    * Input : None
    * Output: This function will assign the attrubutes of 3 particles made after a split
    * Asumpt: Valid particle made and are on the heap and main vec
-   * SideEf: None
+   * SideEf: changes in a b c and no touching of curPart
    */
 
-  // Get the offset angle
+
+  // Required Vectors for Math
+  glm::vec3 oldPos  = curPart->getOldPos();
+  glm::vec3 dir     = curPart->getDir();
+  glm::vec3 center  = curPart->getCenter();
+
+  glm::vec3 axis    = glm::vec3(1,0,0);
+  glm::vec3 norm    = glm::vec3(0,0,1);
+
+  long double radianAngle   = angleBetween(axis,dir,norm);
+  float distanceFromCenter = glm::distance(center, oldPos);
+
+
+  // Get the offset angle (Math for this angle might be fuzzy)
   long double angleBetweenParticles = ( 2 * M_PI ) / clusterSize;
-  long double offsetAngle = angleBetweenParticles / (3.0 * p->getSplit() + 1);
+  long double offsetAngle = angleBetweenParticles / (3.0 * (curPart->getSplit() + 1));
 
   // Left Particle
   long double radianAngleLeft = radianAngle + offsetAngle;
-  glm::vec3 newPosLeft = getPosCircle(distanceFromCenter,radianAngleLeft,curPart->getCenter());
-  glm::vec3 dirLeft(newPosLeft-curPart->getCenter());
+  glm::vec3 newPosLeft = getPosCircle(distanceFromCenter,radianAngleLeft,center);
+  glm::vec3 dirLeft(newPosLeft-center);
   dirLeft = glm::normalize(dirLeft);
 
-  a->updateParticle(
-    newPosLeft,
-    dirLeft,
-    curPart->getCenter(),
-    curPart->getAmp()/3.0,
-    curPart->getSplit()+1);
+  c->setPos    (newPosLeft);
+  c->setOldPos (newPosLeft);
+  c->setDir    (dirLeft);
+  c->setCenter (center);
+  c->setAmp    (curPart->getAmp()/3.0);
+  c->setSplit  (curPart->getSplit()+1);
 
   // Right Particle
   long double radianAngleRight = radianAngle - offsetAngle;
-  glm::vec3 newPosRight = getPosCircle(distanceFromCenter,radianAngleRight,curPart->getCenter());
-  glm::vec3 dirRight(newPosRight-curPart->getCenter());
+  glm::vec3 newPosRight = getPosCircle(distanceFromCenter,radianAngleRight,center);
+  glm::vec3 dirRight(newPosRight-center);
   dirRight = glm::normalize(dirRight);
 
-  b->updateParticle(
-    newPosRight,
-    dirRight,
-    curPart->getCenter(),
-    curPart->getAmp()/3.0,
-    curPart->getSplit()+1);
+  a->setPos    (newPosRight);
+  a->setOldPos (newPosRight);
+  a->setDir    (dirRight);
+  a->setCenter (center);
+  a->setAmp    (curPart->getAmp()/3.0);
+  a->setSplit  (curPart->getSplit()+1);
 
   // Center particle == Orginal curPart
-  c->updateParticle(
-     curPart->getPos(),
-     curPart->getDir(),
-     curPart->getCenter(),
-     curPart->getAmp()/3.0,
-     curPart->getSplit()+1);
+  b->setPos    (oldPos);
+  b->setOldPos (oldPos);
+  b->setDir    (dir);
+  b->setCenter (center);
+  b->setAmp    (curPart->getAmp()/3.0);
+  b->setSplit  (curPart->getSplit()+1);
+
 }
 
 void ParticleSystem::moveParticle(Particle *curPart){
   /* Input : A single particle
   *  Output: Nothing
-  *  Asumpt: A valid particle
+  *  Asumpt: that oldpos has a position
   *  SideEf: Changes the pos and maybe dir of a particle given
   */
 
   // Change position of particle
-  glm::vec3 pos = curPart->getPos();
-  glm::vec3 dir = curPart->getDir();
+  glm::vec3 oldPos = curPart->getOldPos();
+  glm::vec3 dir    = curPart->getDir();
 
-  glm::vec3 axis = glm::vec3(1,0,0);
-  glm::vec3 norm = glm::vec3(0,0,1);
+  glm::vec3 axis   = glm::vec3(1,0,0);
+  glm::vec3 norm   = glm::vec3(0,0,1);
 
-  long double radianAngle = angleBetween(axis,dir,norm);
+  double radianAngle = angleBetween(axis,dir,norm);
+  double vx          = velocity * cos(radianAngle);
+  double vy          = velocity * sin(radianAngle);
 
-  long double vx = velocity * cos(radianAngle);
+  glm::vec3 newPos( oldPos.x + (vx * timestep) , oldPos.y + (vy * timestep), 0 );
 
-  long double vy = velocity * sin(radianAngle);
-
-  glm::vec3 newPos( pos.x + (vx * timestep) , pos.y + (vy * timestep), 0 );
-
-  curPart->setPos(newPos);
+  // Update position
+  curPart->setPos( newPos ); 
 
   // Change direction of particle
   if(isBounded){
 
-    long double distanceFromCenter = glm::distance(newPos,curPart->getCenter());
+    float distanceFromCenter = glm::distance(newPos,curPart->getCenter());
 
     // hit a vertical wall
     if(newPos.x < 0 || 1 < newPos.x ){
@@ -273,7 +335,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
 
     // Hit a horizontal wall
     if(newPos.y < 0 || 1 < newPos.y ){
-      glm::vec3 newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+PI_CONST,newPos);
+      glm::vec3 newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+M_PI,newPos);
       glm::vec3 newDir(dir.x, -1*dir.y, 0);
       curPart->setDir(newDir);
       curPart->setCenter(newCenter);
@@ -283,24 +345,39 @@ void ParticleSystem::moveParticle(Particle *curPart){
 
 bool ParticleSystem::outOfRange(Particle * p){
  /* Input : A single particle
-  * Output: True if you don't have buddy, false if you do
+  * Output: True if you don't have buddy, false if you do, uses old pos
   * Asumpt: Valid iterator
   * SideEf: Delete from current particle from main vec and heap
   */
 
-  glm::vec3 pos = p->getPos();
-  double threshold = 2 * this->particleRadius; // TODO change to real value
+  glm::vec3 pos = p->getOldPos();
 
-  for( int i = 0; i < particleRings.size(); i++ ){
+  double threshold = .5 * particleRadius; // TODO change to real value
+  float nearestDistance = 100000;
+  Particle * nearestPart;
 
-      // If I find a buddy close enough to me
-      if( glm::distance(particleRings[i]->getPos(), pos) < threshold )
-          return false;
+  // Returns closest particle
+  for(unsigned int i = 0; i < particleRings.size(); i++ ){
+
+      // Don't count myself as a buddy
+      if(particleRings[i] == p)
+          continue;
+
+      float dist = glm::distance(particleRings[i]->getOldPos(), pos);
+
+      if(nearestDistance > dist){
+          nearestDistance = dist;
+          nearestPart = particleRings[i];
+      }
 
    }
 
-  // I have no buddies
-  return true;
+  // using a epsion
+  if(fabs(nearestDistance-threshold) <= .01 || nearestDistance > threshold){
+      return true;
+  }else{
+      return false;
+  }
 }
 
 PartIter ParticleSystem::removeParticle(PartIter iter){
@@ -310,9 +387,9 @@ PartIter ParticleSystem::removeParticle(PartIter iter){
    * SideEf: Delete from current particle from main vec and heap
    */
 
-    Particle * p = *iter;
-    PartIter newIter = particleRings.erase(iter);
-    delete p;
+    Particle *p       = *iter;
+    PartIter  newIter = particleRings.erase(iter);
+    delete    p;
     return newIter;
 
 }
@@ -342,37 +419,39 @@ void ParticleSystem::createWave(double x, double y){
     glm::vec2 center(x,y);
 
     // Create a cluster of wave particles when you click
-    double radianAngle = ( 2 * PI_CONST ) / clusterSize;              // Debug 1.570796327
-
+    double radianAngle = ( 2 * M_PI ) / clusterSize;          
 
     // For each particle I will make
     for(unsigned int i = 0; i < clusterSize; i++){
 
       // Get changes in postiton
-      double dx = (cos(radianAngle * i) * clusterRadius); // 1 * .01 = .01
-      double dy = (sin(radianAngle * i) * clusterRadius); // 0 * .01 = .0
+      double dx = (cos(radianAngle * i) * clusterRadius); 
+      double dy = (sin(radianAngle * i) * clusterRadius); 
 
-      glm::vec2 pos_2d(x + dx, y + dy); // ( .05 + .01, .05 + .01  )
+      glm::vec2 pos_2d(x + dx, y + dy);
 
       // Set velolcity and normalize
       glm::vec2 dir_2d = glm::normalize(pos_2d - center);
 
       // Create this new particle
       glm::vec3 pos_3d(pos_2d.x, pos_2d.y, 0.0f);
+      glm::vec3 old_3d(0,0,0);
       glm::vec3 dir_3d(dir_2d.x, dir_2d.y, 0.0f);
+      glm::vec3 cen_3d(center,0);
 
-      Particle * newPart = new Particle(pos_3d,dir_3d,initAmps,0);
-
-      newPart->setCenter(glm::vec3(center.x,center.y,0));
-
-      // Debug
-      // newPart->print();
-      // std::cout << "dx dy: " << std::endl;
-      // std::cout << dx << " " << dy << std::endl;
+      // Create particle on heap
+      Particle * newPart = 
+        new Particle(
+          pos_3d,
+          pos_3d,
+          dir_3d, 
+          cen_3d,
+          initAmps,
+          0);
 
       // Add to collection
       particleRings.push_back(newPart);
-      numParticles++;
+
     }
 
 }

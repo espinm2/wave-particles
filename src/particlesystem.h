@@ -33,13 +33,15 @@ public:
   // Simulation Functions
   void createWave(double x, double y);
   glm::vec3 getPosCircle(double radius, double radAngle, const glm::vec3 center);
-  unsigned int getSize(){ return numParticles; }
+  unsigned int getSize(){ return particleRings.size(); }
   double angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm);
   bool outOfRange(Particle * p);
   std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator);
   void moveParticle(Particle * p);
   void splitParticle(Particle * p, Particle * a, Particle * b, Particle * c);
 
+
+  std::vector<Particle*> particleRings; // Where we keep particles //FIXME MOVE ME
 private:
 
   // private helper functions for VBOs
@@ -52,8 +54,6 @@ private:
   GLuint VaoId;
   GLuint VboId;
 
-  std::vector<Particle*> particleRings; // Where we keep particles
-  unsigned int numParticles;            // Update to keep accurate
 
   // Tune to change simulation behavior
   double timestep;

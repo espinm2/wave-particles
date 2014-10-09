@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.2.1, 2014-10-01T00:52:03. -->
+<!-- Written by QtCreator 3.2.1, 2014-10-09T03:41:33. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -207,11 +207,11 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">/home/espinm2/Code/wave-particles/build/ifs -size 126 512</value>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/usr/bin/optirun</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments"> -size 512 512</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/home/espinm2/Code/wave-particles/build/ifs</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">/home/espinm2/Code/wave-particles/src</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Run /usr/bin/optirun</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Run /home/espinm2/Code/wave-particles/build/ifs</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName"></value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.CustomExecutableRunConfiguration</value>
     <value type="uint" key="RunConfiguration.QmlDebugServerPort">3768</value>
