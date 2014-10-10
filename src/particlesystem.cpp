@@ -12,6 +12,7 @@
 
 typedef std::vector <Particle *>::iterator PartIter;
 int number_overlapped = 0;
+const bool DEBUG_TOGGLE = false;
 
 
 // ====================================================================
@@ -160,20 +161,23 @@ void ParticleSystem::update(){
   for( unsigned int i = 0; i < newParticles.size(); i++)
       particleRings.push_back(newParticles[i]);
 
-  // Print Stats
-  if(splitReached){
-      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+  if(DEBUG_TOGGLE){
+  
+    // Print Stats
+    if(splitReached){
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    }
+
+      std::cout << "==========================" << std::endl;
+      std::cout << "Total Number of Particles " << particleRings.size() << std::endl;
+      std::cout << "Total Number of Splits "    << number_splits << std::endl;
+      std::cout << "New Made Particles "        << newly_made_particles << std::endl;
+      std::cout << "Number of Deleted "         << number_deleted << std::endl;
+      std::cout << "Number of Overlapps "       << number_overlapped << std::endl;
+
   }
-
-    std::cout << "==========================" << std::endl;
-    std::cout << "Total Number of Particles " << particleRings.size() << std::endl;
-    std::cout << "Total Number of Splits "    << number_splits << std::endl;
-    std::cout << "New Made Particles "        << newly_made_particles << std::endl;
-    std::cout << "Number of Deleted "         << number_deleted << std::endl;
-    std::cout << "Number of Overlapps "       << number_overlapped << std::endl;
-
 
 
   // Recreate the VBOs
@@ -381,7 +385,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
     double distanceFromCenter = newPos.Distance3f(curPart->getCenter());
 
     // hit a vertical wall
-    if(newPos.x() < 0 || 50 < newPos.x() ){
+    if(newPos.x() < 0 || 100 < newPos.x() ){
       Vec3f newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
       Vec3f newDir(-1*dir.x(), dir.y(),0);
       curPart->setDir(newDir);
@@ -389,7 +393,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
     }
 
     // Hit a horizontal wall
-    if(newPos.y() < 0 || 50 < newPos.y() ){
+    if(newPos.y() < 0 || 100 < newPos.y() ){
       Vec3f newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+M_PI,newPos);
       Vec3f newDir(dir.x(), -1*dir.y(), 0);
       curPart->setDir(newDir);

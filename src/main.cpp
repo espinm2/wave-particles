@@ -15,9 +15,6 @@
 
 // ====================================================================
 // Bugs
-// (+) Inaccurate creation of splits, offsetAngle could be better
-// (+) Particles will not render
-// (+) Particles will no die
 // ====================================================================
 
 int main(int argc, char *argv[]) {
@@ -45,7 +42,7 @@ int main(int argc, char *argv[]) {
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
   // Debug ///////////////////////////////////////////////
-  partsys.createWave(25,25);
+  partsys.createWave(50,50);
   // End Debug ///////////////////////////////////////////////
 
 
