@@ -8,6 +8,7 @@
 
 #include "glCanvas.h"
 #include "particle.h"
+#include "vectors.h"
 
 class ArgParser;
 
@@ -32,9 +33,9 @@ public:
 
   // Simulation Functions
   void createWave(double x, double y);
-  glm::vec3 getPosCircle(double radius, double radAngle, const glm::vec3 center);
+  Vec3f getPosCircle(double radius, double radAngle, const Vec3f center);
   unsigned int getSize(){ return particleRings.size(); }
-  double angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm);
+  double angleBetween(Vec3f a, Vec3f b, Vec3f norm);
   bool outOfRange(Particle * p);
   std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator);
   void moveParticle(Particle * p);
@@ -63,7 +64,7 @@ private:
   double velocity;
   double particleRadius;
   double clusterRadius;
-  unsigned int clusterSize;
+  unsigned int initClusterSize;
 
 };
 

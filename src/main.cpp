@@ -5,10 +5,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
+#include "vectors.h"
 #include "argparser.h"
 #include "particle.h"
 #include "glCanvas.h"
 #include "camera.h"
+#include "MersenneTwister.h"
 #include "particlesystem.h"
 
 // ====================================================================
@@ -20,14 +22,18 @@
 
 int main(int argc, char *argv[]) {
 
+
   // parse the command line arguments
   ArgParser args(argc, argv);
 
   // create the particlesystem object
   ParticleSystem partsys(&args);
   GLCanvas::initialize(&args,&partsys);
-  
-  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
   glEnable(GL_CULL_FACE);
@@ -39,63 +45,7 @@ int main(int argc, char *argv[]) {
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
   // Debug ///////////////////////////////////////////////
-
   partsys.createWave(25,25);
-
-  /*
-  glm::vec3 pos(.5,.5,0);
-  glm::vec3 dir(1,0,0);
-  glm::vec3 cen(.2,.5,0);
-
-
-  Particle * debug = partsys.particleRings[0];
-  Particle * a = new Particle;
-  Particle * b = new Particle;
-  Particle * c = new Particle;
-
-  partsys.splitParticle(debug,a,b,c);
-
-  std::cout << "Particle A " << *a << std::endl;
-  std::cout << "Particle B " << *b << std::endl;
-  std::cout << "Particle C " << *c << std::endl;
-
-
-  partsys.particleRings.push_back(a);
-  partsys.particleRings.push_back(b);
-  partsys.particleRings.push_back(c);
-
-  // Works
-
-  partsys.removeParticle(partsys.particleRings.begin()); // this could be it
-
-  // Moving so i can split later
-  partsys.moveParticle(a);
-  partsys.moveParticle(a);
-  partsys.moveParticle(a);
-  partsys.moveParticle(a);
-  partsys.moveParticle(a);
-
-  Particle * aa = new Particle;
-  Particle * ab = new Particle;
-  Particle * ac = new Particle;
-
-  partsys.splitParticle(a, aa, ab, ac);
-
-  std::cout << "Particle A " << *a << std::endl;
-  std::cout << "Particle AA " << *aa << std::endl;
-  std::cout << "Particle AB " << *ab << std::endl;
-  std::cout << "Particle AC " << *ac << std::endl;
-
-  partsys.particleRings.push_back(aa);
-  partsys.particleRings.push_back(ab);
-  partsys.particleRings.push_back(ac);
-
-  // partsys.removeParticle(partsys.particleRings.begin()); // this could be it
-
-  partsys.setupVBOs();
-
-  */
-
   // End Debug ///////////////////////////////////////////////
 
 

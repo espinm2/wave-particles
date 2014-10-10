@@ -7,22 +7,24 @@
 #include <glm/geometric.hpp>// glm::normalize, glm::dot, glm::reflect
 
 #include "particlesystem.h"
+#include "MersenneTwister.h"
 #include "argparser.h"
 
 typedef std::vector <Particle *>::iterator PartIter;
+int number_overlapped = 0;
 
 
 // ====================================================================
 // Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
-  timestep        = .001;
-  isBounded       = false;
-  initAmps        = 1000;
+  timestep        = .05;
+  isBounded       = true;
+  initAmps        = 10000;
   minAmps         = 10;
   velocity        = 1;
   particleRadius  = 2;
   clusterRadius   = .1;
-  clusterSize     = 4;
+  initClusterSize     = 4;
 }
 
 // ====================================================================
@@ -35,6 +37,14 @@ void ParticleSystem::update(){
    * Asumpt: There are particles to move
    * SideEf: Updates postition of particles/ removes particles
    */
+
+  // Debug Stuff ////////////////
+  int newly_made_particles = 0;//
+  int number_splits        = 0;//
+  int number_deleted       = 0;//
+  number_overlapped = 0;       //
+  bool splitReached = false;   //
+  // ////////////////////////////
 
   // Hold new particles from split
   std::vector<Particle *> newParticles;
@@ -57,12 +67,17 @@ void ParticleSystem::update(){
       // Kill this partcile and move to next
       deleteMask[maskIndex++] = 1;
       iter++;
+      number_deleted++;
       continue;
 
     }
 
     // Particles are beyond a threshold init a split
     if(outOfRange(curPart)){
+
+        // Debug ///////
+        number_splits++;
+        if( curPart->getSplit() == 1 ){ splitReached = true ; }
 
         // Create 3 new particles and assign them
         Particle * a = new Particle;
@@ -85,10 +100,12 @@ void ParticleSystem::update(){
         assert(curPart->getAmp() > a->getAmp());//
         assert(curPart->getAmp() > b->getAmp());//
         assert(curPart->getAmp() > c->getAmp());//
+        newly_made_particles+=3;                //
         //  //////////////////////////////////////
 
         // Debug Test ///////////////////
         assert( &(*curPart) != &(*c) );//
+        number_deleted++;              //
         //  /////////////////////////////
 
         // Remove and kill the current particle
@@ -107,25 +124,57 @@ void ParticleSystem::update(){
   } //forloop
 
 
-  std::vector<Particle *> updatedRings;
-
   for( unsigned int i = 0 ; i < particleRings.size(); i++){
-
       // Keep if 0, else delete
-      if(deleteMask[i] == 0)
-          updatedRings.push_back(particleRings[i]);
-      else
-          delete particleRings[i];
+      if(deleteMask[i] == 1){
+
+          if(!newParticles.empty()){
+
+              // Put in new particle to fill gap
+              delete particleRings[i];
+              particleRings[i] = newParticles.back();
+              newParticles.pop_back();
+
+          }else{
+
+              // there is stuff to push off
+              if(i != particleRings.size()-1){
+
+                // Pop off back of vector to fill the gap
+                delete particleRings[i];
+                particleRings[i] = particleRings.back();
+                particleRings.pop_back();
+
+              }else{
+                // Just delete the last element, nothing need be poped
+                delete particleRings[i];
+                particleRings.pop_back();
+
+              }
+          }
+      }
   }
 
 
   // Add into the main vector those new particles yet added
   for( unsigned int i = 0; i < newParticles.size(); i++)
-      updatedRings.push_back(newParticles[i]);
+      particleRings.push_back(newParticles[i]);
+
+  // Print Stats
+  if(splitReached){
+      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+      std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+  }
+
+    std::cout << "==========================" << std::endl;
+    std::cout << "Total Number of Particles " << particleRings.size() << std::endl;
+    std::cout << "Total Number of Splits "    << number_splits << std::endl;
+    std::cout << "New Made Particles "        << newly_made_particles << std::endl;
+    std::cout << "Number of Deleted "         << number_deleted << std::endl;
+    std::cout << "Number of Overlapps "       << number_overlapped << std::endl;
 
 
-  // Update particleRings
-  this->particleRings = updatedRings;
 
   // Recreate the VBOs
   setupVBOs();
@@ -148,28 +197,35 @@ void ParticleSystem::setupPoints() {
   // allocate space for the data
 
   VertexPosColor* points = new VertexPosColor[particleRings.size()];
+  MTRand randGen;
 
+  unsigned int countSplit2 = 0;
   for(unsigned int i = 0; i < particleRings.size(); i++){
 
      Particle * curPart = particleRings[i];
 
 
      // Getting posititons
-     glm::vec3 pos_2d = curPart->getPos();
-     glm::vec4 pos_3d(pos_2d.x, pos_2d.y, 0,1); //locked for 2d case
+     Vec3f pos_2d = curPart->getPos();
+     //glm::vec4 pos_3d(pos_2d.x(), pos_2d.y(), randGen.randInt(1), 1); //locked for 2d case
+     glm::vec4 pos_3d(pos_2d.x(), pos_2d.y(), 0, 1); //locked for 2d case
 
      glm::vec4 color;
      // even
      int split = curPart->getSplit();
 
      if(split%3 == 0){
-         color = glm::vec4((i/(double)particleRings.size()),0,0,1);//red
+         // color = glm::vec4((i/(double)particleRings.size()),0,0,1);//red
+         color = glm::vec4(1,0,0,0.5);//red
      }else if(split%3 == 1){
-         color = glm::vec4(0,0,(i/(double)particleRings.size()),1);//blue
-     } else if(split%3 == 2){
-         color = glm::vec4(0,(i/(double)particleRings.size()),0,1);//green
+         // color = glm::vec4(0,0,(i/(double)particleRings.size()),1);//blue
+         color = glm::vec4(0,0,1,0.5);//blue
+     } else if(split == 2){
+         // color = glm::vec4(0,(i/(double)particleRings.size()),0,1);//green
+         color = glm::vec4(0,1,0,0.5);//green
+         countSplit2++;
      }else{
-         color = glm::vec4(0,0,0,1);//black
+         color = glm::vec4(1,0,1,0.5);//black
      }
 
 
@@ -246,26 +302,25 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
 
 
   // Required Vectors for Math
-  glm::vec3 oldPos  = curPart->getOldPos();
-  glm::vec3 dir     = curPart->getDir();
-  glm::vec3 center  = curPart->getCenter();
+  Vec3f oldPos  = curPart->getOldPos();
+  Vec3f dir     = curPart->getDir();
+  Vec3f center  = curPart->getCenter();
 
-  glm::vec3 axis    = glm::vec3(1,0,0);
-  glm::vec3 norm    = glm::vec3(0,0,1);
+  Vec3f axis(1,0,0);
+  Vec3f norm(0,0,1);
 
   long double radianAngle   = angleBetween(axis,dir,norm);
-  float distanceFromCenter = glm::distance(center, oldPos);
+  double distanceFromCenter = center.Distance3f(oldPos);
 
 
   // Get the offset angle (Math for this angle might be fuzzy)
-  long double angleBetweenParticles = ( 2 * M_PI ) / clusterSize;
-  long double offsetAngle = angleBetweenParticles / (3.0 * (curPart->getSplit() + 1));
+  double offsetAngle = (2 * M_PI) / (initClusterSize * pow(3,curPart->getSplit() + 1));
 
   // Left Particle
   long double radianAngleLeft = radianAngle + offsetAngle;
-  glm::vec3 newPosLeft = getPosCircle(distanceFromCenter,radianAngleLeft,center);
-  glm::vec3 dirLeft(newPosLeft-center);
-  dirLeft = glm::normalize(dirLeft);
+  Vec3f newPosLeft = getPosCircle(distanceFromCenter,radianAngleLeft,center);
+  Vec3f dirLeft(newPosLeft-center);
+  dirLeft.Normalize();
 
   c->setPos    (newPosLeft);
   c->setOldPos (newPosLeft);
@@ -276,9 +331,9 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
 
   // Right Particle
   long double radianAngleRight = radianAngle - offsetAngle;
-  glm::vec3 newPosRight = getPosCircle(distanceFromCenter,radianAngleRight,center);
-  glm::vec3 dirRight(newPosRight-center);
-  dirRight = glm::normalize(dirRight);
+  Vec3f newPosRight = getPosCircle(distanceFromCenter,radianAngleRight,center);
+  Vec3f dirRight(newPosRight-center);
+  dirRight.Normalize();
 
   a->setPos    (newPosRight);
   a->setOldPos (newPosRight);
@@ -305,17 +360,17 @@ void ParticleSystem::moveParticle(Particle *curPart){
   */
 
   // Change position of particle
-  glm::vec3 oldPos = curPart->getOldPos();
-  glm::vec3 dir    = curPart->getDir();
+  Vec3f oldPos = curPart->getOldPos();
+  Vec3f dir    = curPart->getDir();
 
-  glm::vec3 axis   = glm::vec3(1,0,0);
-  glm::vec3 norm   = glm::vec3(0,0,1);
+  Vec3f axis(1,0,0);
+  Vec3f norm(0,0,1);
 
   double radianAngle = angleBetween(axis,dir,norm);
   double vx          = velocity * cos(radianAngle);
   double vy          = velocity * sin(radianAngle);
 
-  glm::vec3 newPos( oldPos.x + (vx * timestep) , oldPos.y + (vy * timestep), 0 );
+  Vec3f newPos( oldPos.x() + (vx * timestep) , oldPos.y() + (vy * timestep), 0 );
 
   // Update position
   curPart->setPos( newPos ); 
@@ -323,20 +378,20 @@ void ParticleSystem::moveParticle(Particle *curPart){
   // Change direction of particle
   if(isBounded){
 
-    float distanceFromCenter = glm::distance(newPos,curPart->getCenter());
+    double distanceFromCenter = newPos.Distance3f(curPart->getCenter());
 
     // hit a vertical wall
-    if(newPos.x < 0 || 1 < newPos.x ){
-      glm::vec3 newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
-      glm::vec3 newDir(-1*dir.x, dir.y,0);
+    if(newPos.x() < 0 || 50 < newPos.x() ){
+      Vec3f newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
+      Vec3f newDir(-1*dir.x(), dir.y(),0);
       curPart->setDir(newDir);
       curPart->setCenter(newCenter);
     }
 
     // Hit a horizontal wall
-    if(newPos.y < 0 || 1 < newPos.y ){
-      glm::vec3 newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+M_PI,newPos);
-      glm::vec3 newDir(dir.x, -1*dir.y, 0);
+    if(newPos.y() < 0 || 50 < newPos.y() ){
+      Vec3f newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+M_PI,newPos);
+      Vec3f newDir(dir.x(), -1*dir.y(), 0);
       curPart->setDir(newDir);
       curPart->setCenter(newCenter);
     }
@@ -350,11 +405,16 @@ bool ParticleSystem::outOfRange(Particle * p){
   * SideEf: Delete from current particle from main vec and heap
   */
 
-  glm::vec3 pos = p->getOldPos();
+  Vec3f pos = p->getOldPos();
 
   double threshold = .5 * particleRadius; // TODO change to real value
-  float nearestDistance = 100000;
+
+  double nearestDistance = 100000;
+
+  // Debugging
   Particle * nearestPart;
+  int nearestIndex = -1;
+
 
   // Returns closest particle
   for(unsigned int i = 0; i < particleRings.size(); i++ ){
@@ -363,45 +423,35 @@ bool ParticleSystem::outOfRange(Particle * p){
       if(particleRings[i] == p)
           continue;
 
-      float dist = glm::distance(particleRings[i]->getOldPos(), pos);
+      double dist = particleRings[i]->getOldPos().Distance3f(pos);
 
       if(nearestDistance > dist){
           nearestDistance = dist;
           nearestPart = particleRings[i];
+          nearestIndex = i;
       }
 
    }
 
+
   // using a epsion
-  if(fabs(nearestDistance-threshold) <= .01 || nearestDistance > threshold){
+  if(fabs(nearestDistance-threshold) <= .0001 || nearestDistance > threshold){
       return true;
   }else{
+      if(nearestDistance < .000001){ number_overlapped++; }
       return false;
   }
 }
 
-PartIter ParticleSystem::removeParticle(PartIter iter){
-  /* Input : Iterator to a particle in the main vector
-   * Output: The iterator the particle after the one given
-   * Asumpt: Valid iterator
-   * SideEf: Delete from current particle from main vec and heap
-   */
-
-    Particle *p       = *iter;
-    PartIter  newIter = particleRings.erase(iter);
-    delete    p;
-    return newIter;
-
-}
-
-double ParticleSystem::angleBetween(glm::vec3 a, glm::vec3 b, glm::vec3 norm){
+double ParticleSystem::angleBetween(Vec3f a, Vec3f b, Vec3f norm){
     /*
      *  Input : Two vectors and the normal between them
      *  Output: The angle between both vectors in the range of [-PI , PI]
      */
-    double angle = acos( glm::dot(a,b) / (glm::length(a) * glm::length(b)) );
-    glm::vec3 c = glm::cross(norm,a);
-    if(glm::dot(c,b) < 0)
+    double angle = acos( a.Dot3(b) / ( a.Length() * b.Length() ) );
+    Vec3f c;
+    Vec3f::Cross3(c,norm,a);
+    if(c.Dot3(b) < 0)
         angle = -angle;
 
     return angle;
@@ -416,28 +466,27 @@ void ParticleSystem::createWave(double x, double y){
    */
 
     // Location Pressed / Center of cluster
-    glm::vec2 center(x,y);
+    Vec3f center(x,y,0);
 
     // Create a cluster of wave particles when you click
-    double radianAngle = ( 2 * M_PI ) / clusterSize;          
+    double radianAngle = ( 2 * M_PI ) / initClusterSize;          
 
     // For each particle I will make
-    for(unsigned int i = 0; i < clusterSize; i++){
+    for(unsigned int i = 0; i < initClusterSize; i++){
 
       // Get changes in postiton
       double dx = (cos(radianAngle * i) * clusterRadius); 
       double dy = (sin(radianAngle * i) * clusterRadius); 
 
-      glm::vec2 pos_2d(x + dx, y + dy);
+      Vec3f pos_2d(x + dx, y + dy, 0.0);
 
       // Set velolcity and normalize
-      glm::vec2 dir_2d = glm::normalize(pos_2d - center);
+      Vec3f dir_2d = pos_2d - center;
+      dir_2d.Normalize();
 
       // Create this new particle
-      glm::vec3 pos_3d(pos_2d.x, pos_2d.y, 0.0f);
-      glm::vec3 old_3d(0,0,0);
-      glm::vec3 dir_3d(dir_2d.x, dir_2d.y, 0.0f);
-      glm::vec3 cen_3d(center,0);
+      Vec3f pos_3d(pos_2d);
+      Vec3f dir_3d(dir_2d.x(), dir_2d.y(), 0);
 
       // Create particle on heap
       Particle * newPart = 
@@ -445,23 +494,21 @@ void ParticleSystem::createWave(double x, double y){
           pos_3d,
           pos_3d,
           dir_3d, 
-          cen_3d,
+          center,
           initAmps,
           0);
 
       // Add to collection
       particleRings.push_back(newPart);
-
     }
-
 }
 
-glm::vec3 ParticleSystem::getPosCircle(double radius, double radAngle, glm::vec3 center){
+Vec3f ParticleSystem::getPosCircle(double radius, double radAngle, Vec3f center){
   /*
    * Input : center of a circle, the angle relative to X axis, and radius
    * Output: Point on a circle with those attrabutes
    * Asumpt: radAngle is radians and like a unit circle, 2D
    * SideEf: None
    */
-    return glm::vec3(center.x + radius * cos(radAngle), center.y + radius * sin(radAngle),0);
+    return Vec3f(center.x() + radius * cos(radAngle), center.y() + radius * sin(radAngle),0);
 }

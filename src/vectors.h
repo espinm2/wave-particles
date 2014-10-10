@@ -73,7 +73,7 @@ public:
     data[1] *= d1;
     data[2] *= d2; }
 
-  double Distance3f(Vec3f &b) const {
+  double Distance3f(const Vec3f &b) const {
 
     // Compute the distance
     double delta_x = pow(x() - b.x(), 2.0);
@@ -81,29 +81,20 @@ public:
     double delta_z = pow(z() - b.z(), 2.0);
 
     return sqrt(delta_x + delta_y + delta_z);
-    
   } 
 
   void Negate() { Scale(-1.0); }
-
-
 
   double Dot3(const Vec3f &V) const {
     return data[0] * V.data[0] +
       data[1] * V.data[1] +
       data[2] * V.data[2] ; }
+
   static void Cross3(Vec3f &c, const Vec3f &v1, const Vec3f &v2) {
     double x = v1.data[1]*v2.data[2] - v1.data[2]*v2.data[1];
     double y = v1.data[2]*v2.data[0] - v1.data[0]*v2.data[2];
     double z = v1.data[0]*v2.data[1] - v1.data[1]*v2.data[0];
     c.data[0] = x; c.data[1] = y; c.data[2] = z; }
-
-  double Distance3f(const Vec3f &b) const {
-  // Compute the distance
-  double delta_x = pow(x() - b.x(), 2.0);
-  double delta_y = pow(y() - b.y(), 2.0);
-  double delta_z = pow(z() - b.z(), 2.0);
-  return sqrt(delta_x + delta_y + delta_z); }
 
 
   double AngleBetween(const Vec3f &b) const {
