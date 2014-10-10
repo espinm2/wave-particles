@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
   // Debug ///////////////////////////////////////////////
-  partsys.createWave(50,50);
+  // partsys.createWave(50,50);
   // End Debug ///////////////////////////////////////////////
 
 

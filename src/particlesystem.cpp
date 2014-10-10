@@ -18,14 +18,14 @@ const bool DEBUG_TOGGLE = false;
 // ====================================================================
 // Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
-  timestep        = .05;
+  timestep        = .2;
   isBounded       = true;
-  initAmps        = 10000;
+  initAmps        = 1000;
   minAmps         = 10;
   velocity        = 1;
   particleRadius  = 2;
   clusterRadius   = .1;
-  initClusterSize     = 4;
+  initClusterSize = 4;
 }
 
 // ====================================================================
@@ -224,7 +224,7 @@ void ParticleSystem::setupPoints() {
      }else if(split%3 == 1){
          // color = glm::vec4(0,0,(i/(double)particleRings.size()),1);//blue
          color = glm::vec4(0,0,1,0.5);//blue
-     } else if(split == 2){
+     } else if(split%3 == 2){
          // color = glm::vec4(0,(i/(double)particleRings.size()),0,1);//green
          color = glm::vec4(0,1,0,0.5);//green
          countSplit2++;

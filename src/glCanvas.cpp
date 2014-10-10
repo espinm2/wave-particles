@@ -121,8 +121,10 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 
         std::cout << mouseX << " " << mouseY << std::endl;
 
-        double relWidth = mouseX / (double)width;
-        double relHeight= (height-mouseY) / (double)height;
+        double relWidth = 100 * mouseX / (double)width;
+        double relHeight= 100 * (height-mouseY) / (double)height;
+
+        std::cout << relWidth << " " << relHeight << std::endl;
 
         partsys->createWave(relWidth,relHeight);
         waveKeyPressed = false;
