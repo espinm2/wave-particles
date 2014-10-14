@@ -6,6 +6,7 @@ add_executable(ifs
   main.cpp
   glCanvas.cpp    
   camera.cpp  	       
+  grid.cpp
   particlesystem.cpp
 )
 
