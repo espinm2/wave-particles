@@ -9,6 +9,7 @@
 #include "particlesystem.h"
 #include "MersenneTwister.h"
 #include "argparser.h"
+#include "grid.h"
 
 typedef std::vector <Particle *>::iterator PartIter;
 int number_overlapped = 0;
@@ -18,12 +19,15 @@ const bool DEBUG_TOGGLE = false;
 // ====================================================================
 // Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
+
+  Grid g(100,100,10); // Fix me make me contant
+  this->particleGrid = g;
   timestep        = .2;
   isBounded       = true;
   initAmps        = 1000;
   minAmps         = 10;
   velocity        = 1;
-  particleRadius  = 2;
+  particleRadius  = 1;
   clusterRadius   = .1;
   initClusterSize = 4;
 }
@@ -55,7 +59,6 @@ void ParticleSystem::update(){
   unsigned int maskIndex = 0;
 
   for(PartIter iter = particleRings.begin(); iter != particleRings.end();){
-
 
      // This current Particle
      Particle * curPart = (*iter);
@@ -97,6 +100,11 @@ void ParticleSystem::update(){
         newParticles.push_back(b);
         newParticles.push_back(c);
 
+        // Push them into the grid data structure
+        particleGrid.putParticleInGrid(a);
+        particleGrid.putParticleInGrid(b);
+        particleGrid.putParticleInGrid(c);
+
         // Debug Test ////////////////////////////
         assert(curPart->getAmp() > a->getAmp());//
         assert(curPart->getAmp() > b->getAmp());//
@@ -116,8 +124,16 @@ void ParticleSystem::update(){
 
     }else{
 
+        // remove from old place in cell
+        bool removed = particleGrid.getOldParticleCell(curPart)->removeParticle(curPart);
+        assert(removed); // Make sure removed
+
         // Update postiton and move to next particle
         moveParticle(curPart);
+
+        // Update our grid datastructure
+        particleGrid.putParticleInGrid(curPart);
+
         deleteMask[maskIndex++] = 0;
         iter++;
     }//ifelse
@@ -125,9 +141,20 @@ void ParticleSystem::update(){
   } //forloop
 
 
+  // Deletetion step
   for( unsigned int i = 0 ; i < particleRings.size(); i++){
       // Keep if 0, else delete
       if(deleteMask[i] == 1){
+
+          // Remove from grid strucutre
+          Vec3f pos = particleRings[i]->getOldPos();
+          Cell * c = particleGrid.getCellCoordinates(pos.x(), pos.y());
+          bool removed = c->removeParticle(particleRings[i]);
+          if(!removed){
+              particleGrid.bruteSearch(particleRings[i]);
+              assert(false);
+          }
+
 
           if(!newParticles.empty()){
 
@@ -385,7 +412,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
     double distanceFromCenter = newPos.Distance3f(curPart->getCenter());
 
     // hit a vertical wall
-    if(newPos.x() < 0 || 100 < newPos.x() ){
+    if(newPos.x() < 0 || 100 < newPos.x()){
       Vec3f newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
       Vec3f newDir(-1*dir.x(), dir.y(),0);
       curPart->setDir(newDir);
@@ -393,7 +420,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
     }
 
     // Hit a horizontal wall
-    if(newPos.y() < 0 || 100 < newPos.y() ){
+    if(newPos.y()< 0 || 100 < newPos.y()){
       Vec3f newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+M_PI,newPos);
       Vec3f newDir(dir.x(), -1*dir.y(), 0);
       curPart->setDir(newDir);
@@ -504,6 +531,8 @@ void ParticleSystem::createWave(double x, double y){
 
       // Add to collection
       particleRings.push_back(newPart);
+      particleGrid.putParticleInGrid(newPart);
+
     }
 }
 

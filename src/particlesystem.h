@@ -9,6 +9,7 @@
 #include "glCanvas.h"
 #include "particle.h"
 #include "vectors.h"
+#include "grid.h"
 
 class ArgParser;
 
@@ -42,7 +43,7 @@ public:
   void splitParticle(Particle * p, Particle * a, Particle * b, Particle * c);
 
 
-  std::vector<Particle*> particleRings; // Where we keep particles //FIXME MOVE ME
+
 private:
 
   // private helper functions for VBOs
@@ -51,6 +52,8 @@ private:
   void cleanupPoints();
 
   // REPRESENTATION
+  std::vector<Particle*> particleRings;
+  Grid particleGrid;
   ArgParser *args;
   GLuint VaoId;
   GLuint VboId;

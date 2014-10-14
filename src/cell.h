@@ -19,6 +19,25 @@ class Cell{
       // Commonly used setters
       void push_back( Particle * a){ particles.push_back(a); }
 
+      // Modifiers
+      bool removeParticle( Particle * partPtr){
+
+          if(isEmpty())
+              return false;
+
+          for( int i = 0; i < particles.size(); i++ ){
+              if(particles[i]  == partPtr){
+
+                  particles[i] = particles.back();
+                  particles.pop_back();
+                  return true;
+              }
+          }
+
+          return false;
+      }
+
+
 
   private:
       std::vector< Particle *> particles;
