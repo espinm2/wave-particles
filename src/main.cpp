@@ -15,6 +15,7 @@
 
 // ====================================================================
 // Bugs
+unsigned int updateCounts = 0;
 // ====================================================================
 
 int main(int argc, char *argv[]) {
@@ -42,7 +43,11 @@ int main(int argc, char *argv[]) {
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
   // Debug ///////////////////////////////////////////////
-  partsys.createWave(10,10);
+  partsys.createWave(25,25);
+  partsys.createWave(75,75);
+  partsys.createWave(75,25);
+  partsys.createWave(25,75);
+
   // End Debug ///////////////////////////////////////////////
 
 
@@ -68,6 +73,7 @@ int main(int argc, char *argv[]) {
 
     if(args.animate){
         partsys.update();
+        updateCounts++;
     }
 
 
@@ -76,6 +82,10 @@ int main(int argc, char *argv[]) {
     glfwPollEvents();  
 
   }
+
+  std::cout << "calls dis "<< partsys.call2dis << std::endl;
+  std::cout << "Ring Size "<<  partsys.particleRings.size() << std::endl;
+  std::cout << "update " << updateCounts << std::endl;
   
   partsys.cleanupVBOs();
   glDeleteProgram(programID);

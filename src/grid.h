@@ -23,6 +23,8 @@ class Grid
     Cell * getCellCoordinates(double x, double y);
     Cell * getOldParticleCell(Particle * c);
     Cell * getParticleCell(Particle * c);
+    std::vector<Cell *> getParticleCellAdj(Particle * c);
+
     void bruteSearch(Particle * c);
 
     // particle modifiers

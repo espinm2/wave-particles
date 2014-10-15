@@ -62,28 +62,24 @@ Cell * Grid::getCellCoordinates(double x, double y){
   // Out of range checks, that you
   if(x_index >= divisions){
       x_index = divisions - 1;
-      std::cout << "right wall pass";
   }
 
   if(x_index < 0){
       x_index = 0;
-      std::cout << "left wall pass";
   }
 
   if(y_index >= divisions){
       y_index = divisions - 1;
-      std::cout << "top wall pass";
   }
 
   if(y_index < 0){
       y_index = 0;
-      std::cout << "bottm wall passed";
   }
 
   Cell * cell = getCell(x_index, y_index);
 
-  std::cout << "Inputs "  <<  x << " " << y << std::endl;
-  std::cout << "Get Cell Coordinates " << x_index << " " << y_index << std::endl;
+  // std::cout << "Inputs "  <<  x << " " << y << std::endl;
+  // std::cout << "Get Cell Coordinates " << x_index << " " << y_index << std::endl;
 
   return cell;
 }
@@ -122,4 +118,44 @@ void Grid::bruteSearch(Particle *c){
 }
 
 
+std::vector<Cell *> Grid::getParticleCellAdj(Particle * c){
+
+  // Where there result is
+  std::vector<Cell *> res;
+
+  // Get the particles main location mapped
+  unsigned int x_index = c->getOldPos().x() / divisions;
+  unsigned int y_index = c->getOldPos().y() / divisions;
+
+  if(x_index >= divisions){
+      x_index = divisions - 1;
+  }
+
+  if(x_index < 0){
+      x_index = 0;
+  }
+
+  if(y_index >= divisions){
+      y_index = divisions - 1;
+  }
+
+  if(y_index < 0){
+      y_index = 0;
+  }
+
+  // Push all back that I can
+
+  for( int x = x_index - 1; x <= y_index + 1; x++){
+
+    for( int y = y_index - 1; y <= y_index + 1; y++){
+
+      if(0 <= x && x < divisions && 0 <= y && y < divisions){
+          res.push_back(getCell(x,y));
+      }
+    }
+  }
+
+  return res;
+
+}
 

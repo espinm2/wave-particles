@@ -64,12 +64,12 @@ set_property(TARGET ifs APPEND_STRING PROPERTY LINK_FLAGS "${flags_static} ${fla
 if (APPLE)
   # MAC OSX
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  set_target_properties (ifs PROPERTIES COMPILE_FLAGS "-g -Wall -pedantic")
+  set_target_properties (ifs PROPERTIES COMPILE_FLAGS "-g -O2 -Wall -pedantic")
 else()
   if (UNIX)
     # LINUX
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-    set_target_properties (ifs PROPERTIES COMPILE_FLAGS "-g -Wall -pedantic")
+    set_target_properties (ifs PROPERTIES COMPILE_FLAGS "-g -O2 -Wall -pedantic")
   else()
     # WINDOWS
     set_target_properties (ifs PROPERTIES COMPILE_FLAGS "/W4")

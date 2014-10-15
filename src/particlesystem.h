@@ -38,11 +38,14 @@ public:
   unsigned int getSize(){ return particleRings.size(); }
   double angleBetween(Vec3f a, Vec3f b, Vec3f norm);
   bool outOfRange(Particle * p);
+  bool outOfRangeGrid(Particle * p);
   std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator);
   void moveParticle(Particle * p);
   void splitParticle(Particle * p, Particle * a, Particle * b, Particle * c);
 
 
+  std::vector<Particle*> particleRings;
+  unsigned int call2dis;
 
 private:
 
@@ -52,8 +55,7 @@ private:
   void cleanupPoints();
 
   // REPRESENTATION
-  std::vector<Particle*> particleRings;
-  Grid particleGrid;
+ Grid particleGrid;
   ArgParser *args;
   GLuint VaoId;
   GLuint VboId;
@@ -68,6 +70,7 @@ private:
   double particleRadius;
   double clusterRadius;
   unsigned int initClusterSize;
+
 
 };
 

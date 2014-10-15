@@ -13,6 +13,7 @@
 
 typedef std::vector <Particle *>::iterator PartIter;
 int number_overlapped = 0;
+int number_call_distance = 0;
 const bool DEBUG_TOGGLE = false;
 
 
@@ -24,12 +25,13 @@ ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
   this->particleGrid = g;
   timestep        = .2;
   isBounded       = true;
-  initAmps        = 1000;
+  initAmps        = 100000;
   minAmps         = 10;
   velocity        = 1;
   particleRadius  = 1;
   clusterRadius   = .1;
   initClusterSize = 4;
+  this->call2dis = 0;
 }
 
 // ====================================================================
@@ -77,7 +79,7 @@ void ParticleSystem::update(){
     }
 
     // Particles are beyond a threshold init a split
-    if(outOfRange(curPart)){
+    if(outOfRangeGrid(curPart)){
 
         // Debug ///////
         number_splits++;
@@ -454,6 +456,7 @@ bool ParticleSystem::outOfRange(Particle * p){
       if(particleRings[i] == p)
           continue;
 
+      call2dis++;
       double dist = particleRings[i]->getOldPos().Distance3f(pos);
 
       if(nearestDistance > dist){
@@ -474,12 +477,46 @@ bool ParticleSystem::outOfRange(Particle * p){
   }
 }
 
+
+bool ParticleSystem::outOfRangeGrid(Particle *p){
+
+    std::vector<Particle *> curCellVec = particleGrid.getOldParticleCell(p)->getParticles();
+
+    Vec3f pos = p->getOldPos();
+    double threshold = .5 * particleRadius; // TODO change to real value
+    double nearestDistance = 100000;
+
+    // Returns closest particle
+    for(unsigned int i = 0; i < curCellVec.size(); i++ ){
+
+        // Don't count myself as a buddy
+        if(curCellVec[i] == p)
+            continue;
+
+        call2dis++;
+        double dist =curCellVec[i]->getOldPos().Distance3f(pos);
+        if(nearestDistance > dist)
+            nearestDistance = dist;
+     }
+
+    // using a epsion
+    if(fabs(nearestDistance-threshold) <= .0001 || nearestDistance > threshold){
+        return true;
+    }else{
+        if(nearestDistance < .000001){ number_overlapped++; }
+        return false;
+    }
+}
+
+
 double ParticleSystem::angleBetween(Vec3f a, Vec3f b, Vec3f norm){
+
     /*
      *  Input : Two vectors and the normal between them
      *  Output: The angle between both vectors in the range of [-PI , PI]
      */
-    double angle = acos( a.Dot3(b) / ( a.Length() * b.Length() ) );
+
+    double angle = acos(a.Dot3(b) / (a.Length() * b.Length() ) );
     Vec3f c;
     Vec3f::Cross3(c,norm,a);
     if(c.Dot3(b) < 0)
@@ -489,6 +526,7 @@ double ParticleSystem::angleBetween(Vec3f a, Vec3f b, Vec3f norm){
 }
 
 void ParticleSystem::createWave(double x, double y){
+
   /*
    * Input : None
    * Output: This function make a wave on the XY plane given your input

@@ -76,11 +76,13 @@ public:
   double Distance3f(const Vec3f &b) const {
 
     // Compute the distance
-    double delta_x = pow(x() - b.x(), 2.0);
-    double delta_y = pow(y() - b.y(), 2.0);
-    double delta_z = pow(z() - b.z(), 2.0);
+    double delta_x = x() - b.x();
+    double delta_y = y() - b.y();
+    double delta_z = z() - b.z();
 
-    return sqrt(delta_x + delta_y + delta_z);
+
+
+    return sqrt(delta_x*delta_x + delta_y*delta_y + delta_z*delta_z);
   } 
 
   void Negate() { Scale(-1.0); }
