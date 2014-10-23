@@ -36,7 +36,7 @@ public:
   }
 
   void DefaultValues() {
-    animate = false;
+    animate = true;
     iters = 3;
     width = 400;
     height = 400;

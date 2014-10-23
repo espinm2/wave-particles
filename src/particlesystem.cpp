@@ -21,14 +21,14 @@ const bool DEBUG_TOGGLE = false;
 // Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
 
-  Grid g(100,100,10); // Fix me make me contant
+  Grid g(100,100,20); // Fix me make me contant
   this->particleGrid = g;
   timestep        = .2;
   isBounded       = true;
   initAmps        = 100000;
   minAmps         = 10;
   velocity        = 1;
-  particleRadius  = 1;
+  particleRadius  = 2;
   clusterRadius   = .1;
   initClusterSize = 4;
   this->call2dis = 0;
