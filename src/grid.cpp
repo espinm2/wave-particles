@@ -78,18 +78,21 @@ Cell * Grid::getCellCoordinates(double x, double y){
 
   Cell * cell = getCell(x_index, y_index);
 
-  // std::cout << "Inputs "  <<  x << " " << y << std::endl;
-  // std::cout << "Get Cell Coordinates " << x_index << " " << y_index << std::endl;
+  if((x <= 0 || x >= 100) && (y <= 0 || y >= 100)){
+    std::cout << "Inputs "  <<  x << " " << y << std::endl;
+    std::cout << "Get Cell Coordinates " << x_index << " " << y_index << std::endl;
+  }
 
   return cell;
 }
 
 // Put particle inside of the cell
-void Grid::putParticleInGrid(Particle * c){
+void Grid::putParticleInGrid(Particle * p){
 
   // Put particle inside the correct cell it in contained in
-  Cell * cell = getCellCoordinates( c->getPos().x(), c->getPos().y() );
-  cell->push_back(c);
+  Cell * cell = getCellCoordinates( p->getPos().x(), p->getPos().y() );
+  cell->push_back(p);
+
 }
 
 Cell * Grid::getOldParticleCell(Particle * c){

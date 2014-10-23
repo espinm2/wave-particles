@@ -414,7 +414,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
     double distanceFromCenter = newPos.Distance3f(curPart->getCenter());
 
     // hit a vertical wall
-    if(newPos.x() < 0 || 100 < newPos.x()){
+    if((newPos.x() < 0 && dir.x() < 0 )||( 100 < newPos.x()  && dir.x() > 0)){
       Vec3f newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
       Vec3f newDir(-1*dir.x(), dir.y(),0);
       curPart->setDir(newDir);
@@ -422,7 +422,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
     }
 
     // Hit a horizontal wall
-    if(newPos.y()< 0 || 100 < newPos.y()){
+    if((newPos.y()< 0 && dir.y() < 0)|| (100 < newPos.y() && dir.y() > 0)){
       Vec3f newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+M_PI,newPos);
       Vec3f newDir(dir.x(), -1*dir.y(), 0);
       curPart->setDir(newDir);
