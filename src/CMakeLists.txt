@@ -69,7 +69,7 @@ else()
   if (UNIX)
     # LINUX
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-    set_target_properties (ifs PROPERTIES COMPILE_FLAGS "-g -O2 -Wall -pedantic")
+    set_target_properties (ifs PROPERTIES COMPILE_FLAGS "-g  -Wall -pedantic")
   else()
     # WINDOWS
     set_target_properties (ifs PROPERTIES COMPILE_FLAGS "/W4")
