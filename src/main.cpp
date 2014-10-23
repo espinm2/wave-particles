@@ -42,13 +42,6 @@ int main(int argc, char *argv[]) {
   // Get a handle for our "MVP" uniform
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-  // Debug ///////////////////////////////////////////////
-  partsys.createWave(25,25);
-  partsys.createWave(75,75);
-  partsys.createWave(75,25);
-  partsys.createWave(25,75);
-
-  // End Debug ///////////////////////////////////////////////
 
 
   while (!glfwWindowShouldClose(GLCanvas::window))  {
