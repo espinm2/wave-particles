@@ -111,10 +111,12 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 
   // store the current state of the mouse buttons
   if (which_button == GLFW_MOUSE_BUTTON_1) {
+
     if (action == GLFW_PRESS) {
+
       leftMousePressed = true;
 
-      // Handlig the button clicking
+      // Handling the button clicking
       if(waveKeyPressed){
 
         int width,height;
@@ -129,6 +131,7 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 
         partsys->createWave(relWidth,relHeight);
         waveKeyPressed = false;
+
       }
     } else {
       assert (action == GLFW_RELEASE);
@@ -203,14 +206,19 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
 
   // non modifier key actions
   if (action == GLFW_PRESS && key < 256) {
+
     if (key == GLFW_KEY_ESCAPE || key == 'q' || key == 'Q') {
-      glfwSetWindowShouldClose(GLCanvas::window, GL_TRUE);
+        glfwSetWindowShouldClose(GLCanvas::window, GL_TRUE);
+
     } else if(key == GLFW_KEY_A || key == 'a' || key == 'A'){
         args->animate ? args->animate = false : args->animate = true;
+
     }else if(key == GLFW_KEY_W){
         waveKeyPressed = true;
+
     } else {
       std::cout << "UNKNOWN KEYBOARD INPUT  '" << (char)key << "'" << std::endl;
+
     }
   }
 }
