@@ -55,22 +55,10 @@ private:
   void cleanupPoints();
 
   // REPRESENTATION
- Grid particleGrid;
+  Grid particleGrid;
   ArgParser *args;
   GLuint VaoId;
   GLuint VboId;
-
-
-  // Tune to change simulation behavior
-  double timestep;
-  bool isBounded;
-  double initAmps;
-  double minAmps;
-  double velocity;
-  double particleRadius;
-  double clusterRadius;
-  unsigned int initClusterSize;
-
 
 };
 

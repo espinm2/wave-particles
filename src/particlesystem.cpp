@@ -12,26 +12,18 @@
 #include "grid.h"
 
 typedef std::vector <Particle *>::iterator PartIter;
-int number_overlapped = 0;
-int number_call_distance = 0;
-const bool DEBUG_TOGGLE = false;
 
 
 // ====================================================================
 // Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
 
-  Grid g(100,100,20); // Fix me make me contant
-  this->particleGrid = g;
-  timestep        = .2;
-  isBounded       = true;
-  initAmps        = 100000;
-  minAmps         = 10;
-  velocity        = 1;
-  particleRadius  = 2;
-  clusterRadius   = .1;
-  initClusterSize = 4;
-  this->call2dis = 0;
+  // Create a grid to use
+  this->particleGrid =
+            Grid(args->worldRange,
+                 args->worldRange,
+                 args->gridDivisions);
+
 }
 
 // ====================================================================
@@ -49,7 +41,6 @@ void ParticleSystem::update(){
   int newly_made_particles = 0;//
   int number_splits        = 0;//
   int number_deleted       = 0;//
-  number_overlapped = 0;       //
   bool splitReached = false;   //
   // ////////////////////////////
 
@@ -68,7 +59,7 @@ void ParticleSystem::update(){
 
 
     // Are we below a threhold just kill and move to another
-    if(curPart->getAmp() < minAmps){
+    if(curPart->getAmp() < args->minAmps){
 
       // Kill this partcile and move to next
       deleteMask[maskIndex++] = 1;
@@ -190,25 +181,6 @@ void ParticleSystem::update(){
   for( unsigned int i = 0; i < newParticles.size(); i++)
       particleRings.push_back(newParticles[i]);
 
-  if(DEBUG_TOGGLE){
-  
-    // Print Stats
-    if(splitReached){
-        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-    }
-
-      std::cout << "==========================" << std::endl;
-      std::cout << "Total Number of Particles " << particleRings.size() << std::endl;
-      std::cout << "Total Number of Splits "    << number_splits << std::endl;
-      std::cout << "New Made Particles "        << newly_made_particles << std::endl;
-      std::cout << "Number of Deleted "         << number_deleted << std::endl;
-      std::cout << "Number of Overlapps "       << number_overlapped << std::endl;
-
-  }
-
-
   // Recreate the VBOs
   setupVBOs();
 
@@ -275,15 +247,14 @@ void ParticleSystem::setupPoints() {
   // Where we are storing these points
   glGenBuffers(1, &VboId);
   glBindBuffer(GL_ARRAY_BUFFER,VboId);
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleRings.size(), points,GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleRings.size(), points,GL_STREAM_DRAW);
 
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
+
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
 
-  // increase the size of the points slightly
-  glPointSize(5.0);
 
   delete [] points;
   HandleGLError("leaving setupPoints");
@@ -301,6 +272,7 @@ void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
 void ParticleSystem::drawPoints() const {
   HandleGLError("enter drawPoints");
   // glDrawArrays draws the points
+  // Debug
   glDrawArrays(
               GL_POINTS,    // The primitive you want to draw it as
               0,            // The start offset
@@ -347,7 +319,7 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
 
 
   // Get the offset angle (Math for this angle might be fuzzy)
-  double offsetAngle = (2 * M_PI) / (initClusterSize * pow(3,curPart->getSplit() + 1));
+  double offsetAngle = (2 * M_PI) / (args->initClusterSize * pow(3,curPart->getSplit() + 1));
 
   // Left Particle
   long double radianAngleLeft = radianAngle + offsetAngle;
@@ -400,16 +372,16 @@ void ParticleSystem::moveParticle(Particle *curPart){
   Vec3f norm(0,0,1);
 
   double radianAngle = angleBetween(axis,dir,norm);
-  double vx          = velocity * cos(radianAngle);
-  double vy          = velocity * sin(radianAngle);
+  double vx          = args->velocity * cos(radianAngle);
+  double vy          = args->velocity * sin(radianAngle);
 
-  Vec3f newPos( oldPos.x() + (vx * timestep) , oldPos.y() + (vy * timestep), 0 );
+  Vec3f newPos( oldPos.x() + (vx * args->timestep) , oldPos.y() + (vy * args->timestep), 0 );
 
   // Update position
   curPart->setPos( newPos ); 
 
   // Change direction of particle
-  if(isBounded){
+  if(args->isBounded){
 
     double distanceFromCenter = newPos.Distance3f(curPart->getCenter());
 
@@ -431,59 +403,13 @@ void ParticleSystem::moveParticle(Particle *curPart){
   }
 }
 
-bool ParticleSystem::outOfRange(Particle * p){
- /* Input : A single particle
-  * Output: True if you don't have buddy, false if you do, uses old pos
-  * Asumpt: Valid iterator
-  * SideEf: Delete from current particle from main vec and heap
-  */
-
-  Vec3f pos = p->getOldPos();
-
-  double threshold = .5 * particleRadius; // TODO change to real value
-
-  double nearestDistance = 100000;
-
-  // Debugging
-  Particle * nearestPart;
-  int nearestIndex = -1;
-
-
-  // Returns closest particle
-  for(unsigned int i = 0; i < particleRings.size(); i++ ){
-
-      // Don't count myself as a buddy
-      if(particleRings[i] == p)
-          continue;
-
-      call2dis++;
-      double dist = particleRings[i]->getOldPos().Distance3f(pos);
-
-      if(nearestDistance > dist){
-          nearestDistance = dist;
-          nearestPart = particleRings[i];
-          nearestIndex = i;
-      }
-
-   }
-
-
-  // using a epsion
-  if(fabs(nearestDistance-threshold) <= .0001 || nearestDistance > threshold){
-      return true;
-  }else{
-      if(nearestDistance < .000001){ number_overlapped++; }
-      return false;
-  }
-}
-
 
 bool ParticleSystem::outOfRangeGrid(Particle *p){
 
     std::vector<Particle *> curCellVec = particleGrid.getOldParticleCell(p)->getParticles();
 
     Vec3f pos = p->getOldPos();
-    double threshold = .5 * particleRadius; // TODO change to real value
+    double threshold = .5 * args->particleRadius; // TODO change to real value
     double nearestDistance = 100000;
 
     // Returns closest particle
@@ -500,12 +426,7 @@ bool ParticleSystem::outOfRangeGrid(Particle *p){
      }
 
     // using a epsion
-    if(fabs(nearestDistance-threshold) <= .0001 || nearestDistance > threshold){
-        return true;
-    }else{
-        if(nearestDistance < .000001){ number_overlapped++; }
-        return false;
-    }
+    return (fabs(nearestDistance-threshold) <= .0001 || nearestDistance > threshold);
 }
 
 
@@ -538,14 +459,14 @@ void ParticleSystem::createWave(double x, double y){
     Vec3f center(x,y,0);
 
     // Create a cluster of wave particles when you click
-    double radianAngle = ( 2 * M_PI ) / initClusterSize;          
+    double radianAngle = ( 2 * M_PI ) / args->initClusterSize;
 
     // For each particle I will make
-    for(unsigned int i = 0; i < initClusterSize; i++){
+    for(unsigned int i = 0; i < args->initClusterSize; i++){
 
       // Get changes in postiton
-      double dx = (cos(radianAngle * i) * clusterRadius); 
-      double dy = (sin(radianAngle * i) * clusterRadius); 
+      double dx = (cos(radianAngle * i) * args->clusterRadius);
+      double dy = (sin(radianAngle * i) * args->clusterRadius);
 
       Vec3f pos_2d(x + dx, y + dy, 0.0);
 
@@ -564,7 +485,7 @@ void ParticleSystem::createWave(double x, double y){
           pos_3d,
           dir_3d, 
           center,
-          initAmps,
+          args->initAmps,
           0);
 
       // Add to collection
