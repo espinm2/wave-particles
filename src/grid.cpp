@@ -2,6 +2,7 @@
 
 
 Grid::Grid(){
+
     divisions  = 0;
     width      = 0;
     height     = 0;
@@ -21,7 +22,6 @@ Grid::Grid(unsigned int world_width, unsigned int world_height,
   }
 
 }
-
 
 /*  // Failing when used
     Grid::~Grid(){
@@ -80,7 +80,6 @@ void Grid::putParticleInGrid(Particle * p){
   // Put particle inside the correct cell it in contained in
   Cell * cell = getCellCoordinates( p->getPos().x(), p->getPos().y() );
   cell->push_back(p);
-
 }
 
 Cell * Grid::getOldParticleCell(Particle * p){

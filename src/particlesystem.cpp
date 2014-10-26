@@ -6,6 +6,9 @@ typedef std::vector <Particle *>::iterator PartIter;
 // ====================================================================
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
 
+  // Make sure we don't get to small, that it effects out splits
+  assert((args->worldRange / args->gridDivisions) > splitDistance());
+
   // Create a grid to use
   this->particleGrid =
             Grid(args->worldRange,
@@ -386,7 +389,7 @@ bool ParticleSystem::outOfRangeGrid(Particle *p){
 
     // Default setup
     Vec3f pos = p->getOldPos();
-    double threshold = .5 * args->particleRadius; // TODO change to real value
+    double threshold = splitDistance(); // TODO change to real value;
     double nearestDistance = 100000;
 
     // Returns closest particle

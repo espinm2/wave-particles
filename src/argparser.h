@@ -99,7 +99,7 @@ public:
     clusterRadius   = .1;
     initClusterSize = 4;
     worldRange      = 100;
-    gridDivisions   = 10;
+    gridDivisions   = 15;
 
   }
 

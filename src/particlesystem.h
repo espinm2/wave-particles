@@ -68,6 +68,9 @@ public:
   // Creates 3 new particles from split at the same radius
   void splitParticle(Particle * p, Particle * a, Particle * b, Particle * c);
 
+  // Returns the thredhold at which we split
+  double splitDistance(){return args->particleRadius * .5;}
+
 
 private:
 
