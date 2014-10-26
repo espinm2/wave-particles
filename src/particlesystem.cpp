@@ -14,6 +14,11 @@ ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
 
 }
 
+ParticleSystem::~ParticleSystem(){
+    for(unsigned int i = 0; i < particleVec.size(); i++)
+        delete particleVec[i];
+}
+
 // ====================================================================
 void ParticleSystem::update(){
 
@@ -446,7 +451,6 @@ void ParticleSystem::createWave(double x, double y){
 
       // Create this new particle
       Vec3f pos_3d(pos_2d);
-      Vec3f dir_3d(dir_2d.x(), dir_2d.y(), 0);
 
       // Create particle on heap
       Particle * newPart = 

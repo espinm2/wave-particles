@@ -33,6 +33,9 @@ public:
   // CONSTRUCTOR
   ParticleSystem(ArgParser *a);
 
+  // DESTRUCTOR
+  ~ParticleSystem();
+
   // HELPER FUNCTIONS FOR RENDERING
   void setupVBOs();
   void drawVBOs(GLuint MatrixID,const glm::mat4 &MVP);

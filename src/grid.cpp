@@ -22,6 +22,15 @@ Grid::Grid(unsigned int world_width, unsigned int world_height,
 
 }
 
+
+/*  // Failing when used
+    Grid::~Grid(){
+        for ( int i = 0; i < grid_vector.size(); i++){
+            delete grid_vector[i];
+        }
+    }
+*/
+
 Cell * Grid::getCell(unsigned int i, unsigned int j){
 
   // Errors in getting the index

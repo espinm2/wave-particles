@@ -19,6 +19,9 @@ class Grid
     // split the world up make an even cell division for this world
     Grid(unsigned int world_width, unsigned int world_hight, 
         unsigned int divisions);
+
+    // Destructor to free cells (failing)
+    // ~Grid();
     
     // returns pointer to cell within this grid
     Cell * getCell(unsigned int i, unsigned int j);
