@@ -38,21 +38,7 @@ void GLCanvas::initialize(ArgParser *_args, ParticleSystem *_ifs) {
   args = _args;
   partsys = _ifs;
 
-  // initial placement of camera 
-  double range = args->worldRange;
-  glm::vec3 camera_position =   glm::vec3(range/2.0, range/2.0, range*.80);
-  glm::vec3 point_of_interest = glm::vec3(range/2.0, range/2.0, 0);
-  glm::vec3 up = glm::vec3(0,1,0);
-#if 1
-  float size = range;
-  camera = new OrthographicCamera(camera_position, point_of_interest, up, size);
-#else
-  float angle = 25.0;
-  camera = new PerspectiveCamera(camera_position, point_of_interest, up, angle);
-#endif
-  camera->glPlaceCamera(); 
-
-  glfwSetErrorCallback(error_callback);
+  cameraReset();
 
   // Initialize GLFW
   if( !glfwInit() ) {
@@ -108,6 +94,25 @@ void GLCanvas::initialize(ArgParser *_args, ParticleSystem *_ifs) {
 // ========================================================
 // Callback function for mouse click or release
 // ========================================================
+
+void GLCanvas::cameraReset(){
+
+    // initial placement of camera
+    double range = args->worldRange;
+    glm::vec3 camera_position =   glm::vec3(range/2.0, range/2.0, range);
+    glm::vec3 point_of_interest = glm::vec3(range/2.0, range/2.0, 0);
+    glm::vec3 up = glm::vec3(0,1,0);
+  #if 1
+    float size = range;
+    camera = new OrthographicCamera(camera_position, point_of_interest, up, size);
+  #else
+    float angle = 25.0;
+    camera = new PerspectiveCamera(camera_position, point_of_interest, up, angle);
+  #endif
+    camera->glPlaceCamera();
+
+    glfwSetErrorCallback(error_callback);
+}
 
 void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, int mods) {
 
@@ -202,6 +207,15 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
     } else if(key == GLFW_KEY_J || key == 'j' || key == 'J'){
         args->timestep /= 2;
         std::cout << "Time Step is " << args->timestep << std::endl;
+
+    } else if(key == GLFW_KEY_Z || key == 'z' || key == 'Z'){
+        cameraReset();
+        std::cout << "Camera Reset" << std::endl;
+
+    } else if(key == GLFW_KEY_S || key == 's' || key == 'S'){
+        std::cout << "Resetting Simulation" << std::endl;
+        args->resetRequest = true;
+        cameraReset();
 
     } else if(key == GLFW_KEY_R || key == 'r' || key == 'R'){
         // Experimental

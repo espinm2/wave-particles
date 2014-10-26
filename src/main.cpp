@@ -68,6 +68,10 @@ int main(int argc, char *argv[]) {
       // Pass the matrix to the draw routines (for further editing)
       partsys.drawVBOs(MatrixID,MVP);
 
+      if(args.resetRequest){
+          partsys.reset();
+      }
+
       if(args.animate){
         partsys.update();
       }

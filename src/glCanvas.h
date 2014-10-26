@@ -56,6 +56,7 @@ public:
 
   // Helper Functions
   static void generate_wave(GLFWwindow *window, double x, double y);
+  static void cameraReset();
 
 };
 

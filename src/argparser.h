@@ -101,6 +101,9 @@ public:
     worldRange      = 100;
     gridDivisions   = 15;
 
+    //Triggers
+    resetRequest    = false;
+
   }
 
   // ==============
@@ -129,6 +132,8 @@ public:
   unsigned int worldRange;
   unsigned int gridDivisions;
 
+  // Triggers
+  bool resetRequest;
 
 
 

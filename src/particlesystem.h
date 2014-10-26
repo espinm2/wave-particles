@@ -45,6 +45,9 @@ public:
 
   // SIMULATION FUCTIONS
 
+  // Resetting simulation // TODO
+  void reset(){ std::cout << "Not Implemented Yet" << std::endl; assert(false);}
+
   // Creates wave at world coordinates (x,y)
   void createWave(double x, double y);
 
