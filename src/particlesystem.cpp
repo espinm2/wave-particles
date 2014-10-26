@@ -305,7 +305,6 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
 
   c->setPos    (newPosLeft);
   c->setOldPos (newPosLeft);
-  c->setDir    (dirLeft);
   c->setCenter (center);
   c->setAmp    (curPart->getAmp()/3.0);
   c->setSplit  (curPart->getSplit()+1);
@@ -318,7 +317,6 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
 
   a->setPos    (newPosRight);
   a->setOldPos (newPosRight);
-  a->setDir    (dirRight);
   a->setCenter (center);
   a->setAmp    (curPart->getAmp()/3.0);
   a->setSplit  (curPart->getSplit()+1);
@@ -326,7 +324,6 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
   // Center particle == Orginal curPart
   b->setPos    (oldPos);
   b->setOldPos (oldPos);
-  b->setDir    (dir);
   b->setCenter (center);
   b->setAmp    (curPart->getAmp()/3.0);
   b->setSplit  (curPart->getSplit()+1);
@@ -365,7 +362,6 @@ void ParticleSystem::moveParticle(Particle *curPart){
     if((newPos.x() < 0 && dir.x() < 0 )||( 100 < newPos.x()  && dir.x() > 0)){
       Vec3f newCenter = getPosCircle(distanceFromCenter,-1*radianAngle,newPos);
       Vec3f newDir(-1*dir.x(), dir.y(),0);
-      curPart->setDir(newDir);
       curPart->setCenter(newCenter);
     }
 
@@ -373,7 +369,6 @@ void ParticleSystem::moveParticle(Particle *curPart){
     if((newPos.y()< 0 && dir.y() < 0)|| (100 < newPos.y() && dir.y() > 0)){
       Vec3f newCenter = getPosCircle(distanceFromCenter,(-1*radianAngle)+M_PI,newPos);
       Vec3f newDir(dir.x(), -1*dir.y(), 0);
-      curPart->setDir(newDir);
       curPart->setCenter(newCenter);
     }
   }
@@ -458,7 +453,6 @@ void ParticleSystem::createWave(double x, double y){
         new Particle(
           pos_3d,
           pos_3d,
-          dir_3d, 
           center,
           args->initAmps,
           0);
