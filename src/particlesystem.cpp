@@ -1,5 +1,10 @@
 #include "particlesystem.h"
 
+// Used for state manipulation
+#define GL_PARTICLES   0
+#define GL_BOUNDINGBOX 1
+
+#define BBOX_VERTICES 5
 typedef std::vector <Particle *>::iterator PartIter;
 
 
@@ -175,8 +180,79 @@ void ParticleSystem::update(){
 // ====================================================================
 void ParticleSystem::setupVBOs() {
   HandleGLError("enter setupVBOs");
+
+  // Setting up Ids for VAO
+  glGenVertexArrays(NumVAO,VaoId);
+
+  // Getting name for the VBOs we will use
+  glGenBuffers(NumVBO, VboId);
+
+
+  // Setting up objects to render
   setupPoints();
+  setupBBox();
+
+
   HandleGLError("leaving setupVBOs");
+}
+
+void ParticleSystem::setupBBox(){
+  HandleGLError("enter setupBBox");
+
+  // allocate space for the data
+
+  // Manual Bounding Box
+  VertexPosColor* vertices = new VertexPosColor[BBOX_VERTICES];
+
+  int s = args->worldRange;
+  int z = s / 2;
+
+
+  // Adding to VBO
+  vertices[0]  = VertexPosColor(glm::vec4(0,0,z,1),glm::vec4(1,1,1,1));
+  vertices[1]  = VertexPosColor(glm::vec4(0,s,z,1),glm::vec4(1,1,1,1));
+  vertices[2]  = VertexPosColor(glm::vec4(s,s,z,1),glm::vec4(1,1,1,1));
+  vertices[3]  = VertexPosColor(glm::vec4(s,0,z,1),glm::vec4(1,1,1,1));
+  vertices[4]  = VertexPosColor(glm::vec4(0,0,z,1),glm::vec4(1,1,1,1));
+
+  /*
+  vertices[5]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[6]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[7]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[8]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[9]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[10] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[11] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[12] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[13] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[14] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[15] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[16] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  vertices[17] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
+  */
+
+
+
+  // Working  with Particles VAO
+  glBindVertexArray(VaoId[GL_BOUNDINGBOX]);
+
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_BOUNDINGBOX]);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * BBOX_VERTICES, vertices,GL_STREAM_DRAW);
+
+  // For postion
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
+
+  // For color
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
+
+
+
+  delete [] vertices;
+  HandleGLError("leaving setupBBox");
+
+
 }
 
 void ParticleSystem::setupPoints() {
@@ -186,7 +262,6 @@ void ParticleSystem::setupPoints() {
   // allocate space for the data
 
   VertexPosColor* points = new VertexPosColor[particleVec.size()];
-  MTRand randGen;
 
   unsigned int countSplit2 = 0;
   for(unsigned int i = 0; i < particleVec.size(); i++){
@@ -224,20 +299,22 @@ void ParticleSystem::setupPoints() {
    }
 
 
-  // create a pointer for the VBO
-  glGenVertexArrays(1, &VaoId);
-  glBindVertexArray(VaoId);
 
-  // Where we are storing these points
-  glGenBuffers(1, &VboId);
-  glBindBuffer(GL_ARRAY_BUFFER,VboId);
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleVec.size(), points,GL_STREAM_DRAW);
 
+  // Working  with Particles VAO
+  glBindVertexArray(VaoId[GL_PARTICLES]);
+
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_PARTICLES]);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleVec.size(), points,GL_STATIC_DRAW);
+
+  // For postion
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
 
+  // For color
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
+
 
 
   delete [] points;
@@ -250,13 +327,30 @@ void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
   HandleGLError("enter drawVBOs");
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &m[0][0]);
   drawPoints();
+  drawBBox();
   HandleGLError("leaving drawVBOs");
 }
 
+void ParticleSystem::drawBBox() const {
+
+
+  glBindVertexArray(VaoId[GL_BOUNDINGBOX]);
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_BOUNDINGBOX]);
+
+  HandleGLError("enter drawBBOX");
+  glDrawArrays(
+              GL_LINE_STRIP,    // The primitive you want to draw it as
+              0,            // The start offset
+              BBOX_VERTICES);  // The number of points
+
+  HandleGLError("leaving drawBBOX");
+}
 void ParticleSystem::drawPoints() const {
+
+  glBindVertexArray(VaoId[GL_PARTICLES]);
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_PARTICLES]);
+
   HandleGLError("enter drawPoints");
-  // glDrawArrays draws the points
-  // Debug
   glDrawArrays(
               GL_POINTS,    // The primitive you want to draw it as
               0,            // The start offset
@@ -267,14 +361,11 @@ void ParticleSystem::drawPoints() const {
 
 void ParticleSystem::cleanupVBOs() {
   HandleGLError("enter cleanupVBOs");
-  cleanupPoints();
+  glDeleteBuffers(NumVAO, VaoId);
+  glDeleteBuffers(NumVBO, VboId);
   HandleGLError("leaving cleanupVBOs");
 }
 
-void ParticleSystem::cleanupPoints() {
-  glDeleteBuffers(1, &VaoId);
-  glDeleteBuffers(1, &VboId);
-}
 
 
 // ====================================================================

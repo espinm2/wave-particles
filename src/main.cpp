@@ -36,7 +36,6 @@ int main(int argc, char *argv[]) {
   // Setting Points Size
   glPointSize(3.0);
 
-  // /////////////////////////////////
   // Not need because 2D Simulations
   // glEnable(GL_DEPTH_TEST);
   // glDepthFunc(GL_LESS);

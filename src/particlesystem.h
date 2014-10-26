@@ -22,6 +22,7 @@
 #include "grid.h"
 
 
+
 // holds simulation constants
 class ArgParser;
 
@@ -74,17 +75,26 @@ public:
 
 private:
 
-  // private helper functions for VBOs
+  // private helper functions for VBO setup
   void setupPoints();
   void drawPoints() const;
-  void cleanupPoints();
+
+  // private helper function for VAO setup
+  void setupBBox();
+  void drawBBox() const;
+
 
   // REPRESENTATION
   std::vector<Particle*> particleVec;
   Grid particleGrid;
   ArgParser *args;
-  GLuint VaoId;
-  GLuint VboId;
+
+  // Number of VAOs and VBOs (one per object)
+  static const int NumVAO = 2;
+  static const int NumVBO = NumVAO;
+
+  GLuint VaoId[NumVAO];
+  GLuint VboId[NumVBO];
 
 };
 
