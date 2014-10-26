@@ -3,6 +3,7 @@
 // Used for state manipulation
 #define GL_PARTICLES   0
 #define GL_BOUNDINGBOX 1
+#define GL_WALL        2
 
 #define BBOX_VERTICES 5
 typedef std::vector <Particle *>::iterator PartIter;
@@ -20,11 +21,16 @@ ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
                  args->worldRange,
                  args->gridDivisions);
 
+  // Load in walls
+  loadWallsFromFile("");
+
 }
 
 ParticleSystem::~ParticleSystem(){
     for(unsigned int i = 0; i < particleVec.size(); i++)
         delete particleVec[i];
+    for(unsigned int i = 0; i < wallVec.size(); i++)
+        delete wallVec[i];
 }
 
 // ====================================================================
@@ -191,6 +197,7 @@ void ParticleSystem::setupVBOs() {
   // Setting up objects to render
   setupPoints();
   setupBBox();
+  setupWalls();
 
 
   HandleGLError("leaving setupVBOs");
@@ -215,29 +222,13 @@ void ParticleSystem::setupBBox(){
   vertices[3]  = VertexPosColor(glm::vec4(s,0,z,1),glm::vec4(1,1,1,1));
   vertices[4]  = VertexPosColor(glm::vec4(0,0,z,1),glm::vec4(1,1,1,1));
 
-  /*
-  vertices[5]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[6]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[7]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[8]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[9]  = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[10] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[11] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[12] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[13] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[14] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[15] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[16] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  vertices[17] = VertexPosColor(glm::vec4(),glm::vec4(1,1,1,1));
-  */
-
 
 
   // Working  with Particles VAO
   glBindVertexArray(VaoId[GL_BOUNDINGBOX]);
 
   glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_BOUNDINGBOX]);
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * BBOX_VERTICES, vertices,GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * BBOX_VERTICES, vertices,GL_STATIC_DRAW);
 
   // For postion
   glEnableVertexAttribArray(0);
@@ -305,7 +296,7 @@ void ParticleSystem::setupPoints() {
   glBindVertexArray(VaoId[GL_PARTICLES]);
 
   glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_PARTICLES]);
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleVec.size(), points,GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleVec.size(), points,GL_STREAM_DRAW);
 
   // For postion
   glEnableVertexAttribArray(0);
@@ -328,6 +319,7 @@ void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &m[0][0]);
   drawPoints();
   drawBBox();
+  drawWalls();
   HandleGLError("leaving drawVBOs");
 }
 
@@ -344,6 +336,69 @@ void ParticleSystem::drawBBox() const {
               BBOX_VERTICES);  // The number of points
 
   HandleGLError("leaving drawBBOX");
+}
+
+void ParticleSystem::setupWalls() {
+
+  VertexPosColor* wallsVertex = new VertexPosColor[2*wallVec.size()];
+
+  glm::vec4 white(1,1,1,1);
+  int index = 0;
+  int z = args->worldRange / 2.0;
+
+  // For each wall put its a and b in the VBO
+  for(int i = 0; i < wallVec.size(); i++){
+
+      // Getting pos
+      Vec3f a = wallVec[i]->getA();
+      Vec3f b = wallVec[i]->getB();
+
+      // seting for glm
+      glm::vec4 aPos(a.x(),a.y(),z,1);
+      glm::vec4 bPos(b.x(),b.y(),z,1);
+
+      wallsVertex[index++] = VertexPosColor(aPos, white);
+      wallsVertex[index++] = VertexPosColor(bPos, white);
+
+
+  }
+
+  assert(index == 2*wallVec.size());
+
+
+  // Working  with Particles VAO
+  glBindVertexArray(VaoId[GL_WALL]);
+
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_WALL]);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * wallVec.size() * 2, wallsVertex ,GL_STATIC_DRAW);
+
+  // For postion
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
+
+  // For color
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
+
+
+  delete [] wallsVertex;
+  HandleGLError("leaving setupWalls");
+
+}
+
+void ParticleSystem::drawWalls() const {
+  glBindVertexArray(VaoId[GL_WALL]);
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_WALL]);
+
+  HandleGLError("enter drawWalls");
+
+  glDrawArrays(
+              GL_LINES,    // The primitive you want to draw it as
+              0,            // The start offset
+              wallVec.size()*2);  // The number of points
+
+  HandleGLError("leaving drawWalls");
+
 }
 void ParticleSystem::drawPoints() const {
 
@@ -426,6 +481,27 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
   b->setCenter (center);
   b->setAmp    (curPart->getAmp()/3.0);
   b->setSplit  (curPart->getSplit()+1);
+
+}
+
+// This is a protoype for testing
+void ParticleSystem::loadWallsFromFile( std::string input_file) {
+    // TODO make parser for input
+
+    // for each wall
+    //   particleGrid.putWallInGrid(w)
+
+    // Test input only works on worldRange = 100
+    Wall * w1 = new Wall(Vec3f(20,20,0), Vec3f(20,80,0), Vec3f(50,50,0));
+    Wall * w2 = new Wall(Vec3f(80,20,0), Vec3f(80,80,0), Vec3f(50,50,0));
+
+    Wall * w3 = new Wall(Vec3f(20,20,0), Vec3f(80,20,0), Vec3f(50,50,0));
+    Wall * w4 = new Wall(Vec3f(20,80,0), Vec3f(80,80,0), Vec3f(50,50,0));
+
+    wallVec.push_back(w1);
+    wallVec.push_back(w2);
+    wallVec.push_back(w3);
+    wallVec.push_back(w4);
 
 }
 

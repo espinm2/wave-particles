@@ -7,6 +7,7 @@ add_executable(simulation
   glCanvas.cpp    
   camera.cpp  	       
   grid.cpp
+  wall.cpp
   particlesystem.cpp
 )
 

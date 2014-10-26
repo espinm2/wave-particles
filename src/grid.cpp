@@ -67,11 +67,6 @@ Cell * Grid::getCellCoordinates(double x, double y){
 
   Cell * cell = getCell(x_index, y_index);
 
-  if((x <= 0 || x >= 100) && (y <= 0 || y >= 100)){
-    std::cout << "Inputs "  <<  x << " " << y << std::endl;
-    std::cout << "Get Cell Coordinates " << x_index << " " << y_index << std::endl;
-  }
-
   return cell;
 }
 

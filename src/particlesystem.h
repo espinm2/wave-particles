@@ -18,6 +18,7 @@
 #include "argparser.h"
 #include "glCanvas.h"
 #include "particle.h"
+#include "wall.h"
 #include "vectors.h"
 #include "grid.h"
 
@@ -75,6 +76,9 @@ public:
   // Returns the thredhold at which we split
   double splitDistance(){return args->particleRadius * .5;}
 
+  // Setup walls for both VBO and Grid
+  void loadWallsFromFile(std::string input_file);
+
 
 private:
 
@@ -82,18 +86,21 @@ private:
   void setupPoints();
   void drawPoints() const;
 
-  // private helper function for VAO setup
   void setupBBox();
   void drawBBox() const;
+
+  void setupWalls();
+  void drawWalls() const;
 
 
   // REPRESENTATION
   std::vector<Particle*> particleVec;
+  std::vector<Wall*> wallVec;
   Grid particleGrid;
   ArgParser *args;
 
   // Number of VAOs and VBOs (one per object)
-  static const int NumVAO = 2;
+  static const int NumVAO = 3;
   static const int NumVBO = NumVAO;
 
   GLuint VaoId[NumVAO];
