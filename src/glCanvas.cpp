@@ -14,10 +14,12 @@ GLFWwindow* GLCanvas::window = NULL;
 // mouse position
 int GLCanvas::mouseX = 0;
 int GLCanvas::mouseY = 0;
+
 // which mouse button
 bool GLCanvas::leftMousePressed = false;
 bool GLCanvas::middleMousePressed = false;
 bool GLCanvas::rightMousePressed = false;
+
 // current state of modifier keys
 bool GLCanvas::shiftKeyPressed = false;
 bool GLCanvas::controlKeyPressed = false;
@@ -113,44 +115,21 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
   if (which_button == GLFW_MOUSE_BUTTON_1) {
 
     if (action == GLFW_PRESS) {
-
       leftMousePressed = true;
 
-      // Handling the button clicking
       if(waveKeyPressed){
-
-        int width,height;
-        glfwGetWindowSize(window,&width,&height);
-
-        std::cout << mouseX << " " << mouseY << std::endl;
-
-        double relWidth = 100 * mouseX / (double)width;
-        double relHeight= 100 * (height-mouseY) / (double)height;
-
-        std::cout << relWidth << " " << relHeight << std::endl;
-
-        partsys->createWave(relWidth,relHeight);
+        generate_wave(window,mouseX,mouseY);
         waveKeyPressed = false;
-
       }
+
     } else {
-      assert (action == GLFW_RELEASE);
       leftMousePressed = false;
     }
+
   } else if (which_button == GLFW_MOUSE_BUTTON_2) {
-    if (action == GLFW_PRESS) {
-      rightMousePressed = true;
-    } else {
-      assert (action == GLFW_RELEASE);
-      rightMousePressed = false;
-    }
+      rightMousePressed = (action == GLFW_PRESS);
   } else if (which_button == GLFW_MOUSE_BUTTON_3) {
-    if (action == GLFW_PRESS) {
-      middleMousePressed = true;
-    } else {
-      assert (action == GLFW_RELEASE);
-      middleMousePressed = false;
-    }
+      middleMousePressed = (action == GLFW_PRESS);
   }
 }	
 
@@ -159,8 +138,9 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 // ========================================================
 
 void GLCanvas::mousemotionCB(GLFWwindow *window, double x, double y) {
-
-
+  if(shiftKeyPressed){
+      std::cout << "Trigger shift" << std::endl;
+  }
 
   // camera controls that work well for a 3 button mouse
   if (!shiftKeyPressed && !controlKeyPressed && !altKeyPressed) {
@@ -187,7 +167,6 @@ void GLCanvas::mousemotionCB(GLFWwindow *window, double x, double y) {
     }
   }
 
-
   mouseX = x;
   mouseY = y;
 }
@@ -197,6 +176,7 @@ void GLCanvas::mousemotionCB(GLFWwindow *window, double x, double y) {
 // ========================================================
 
 void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action, int mods) {
+
   // store the modifier keys
   shiftKeyPressed = (GLFW_MOD_SHIFT & mods);
   controlKeyPressed = (GLFW_MOD_CONTROL & mods);
@@ -212,6 +192,22 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
 
     } else if(key == GLFW_KEY_A || key == 'a' || key == 'A'){
         args->animate ? args->animate = false : args->animate = true;
+        (args->animate) ? std::cout << "Continue " : std::cout << "Stopping ";
+        std::cout << "Animation" << std::endl;
+
+    } else if(key == GLFW_KEY_K || key == 'k' || key == 'K'){
+        args->timestep *= 2;
+        std::cout << "Time Step is " << args->timestep << std::endl;
+
+    } else if(key == GLFW_KEY_J || key == 'j' || key == 'J'){
+        args->timestep /= 2;
+        std::cout << "Time Step is " << args->timestep << std::endl;
+
+    } else if(key == GLFW_KEY_R || key == 'r' || key == 'R'){
+        // Experimental
+        args->timestep  = args->timestep * -1;
+        (args->timestep > 0) ? std::cout << "Not Reversed" : std::cout << "Revered";
+        std::cout << std::endl;
 
     }else if(key == GLFW_KEY_W){
         waveKeyPressed = true;
@@ -221,6 +217,20 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
 
     }
   }
+}
+
+void GLCanvas::generate_wave(GLFWwindow *window, double x, double y){
+
+        int width,height;
+        glfwGetWindowSize(window,&width,&height);
+
+        double relWidth = 100 * x / (double)width;
+        double relHeight= 100 * (height-y) / (double)height;
+        partsys->createWave(relWidth,relHeight);
+
+        std::cout << "Created wave at ";
+        std::cout << relWidth << " " << relHeight << std::endl;
+
 }
 
 // ========================================================
@@ -359,5 +369,4 @@ int HandleGLError(const std::string &message, bool ignore) {
   return 0;
 }
 
-// ========================================================
 // ========================================================

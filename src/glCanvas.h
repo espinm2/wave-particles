@@ -33,10 +33,12 @@ public:
   // mouse position
   static int mouseX;
   static int mouseY;
+
   // which mouse button
   static bool leftMousePressed;
   static bool middleMousePressed;
   static bool rightMousePressed;
+
   // current state of modifier keys
   static bool shiftKeyPressed;
   static bool controlKeyPressed;
@@ -51,6 +53,10 @@ public:
   static void mousemotionCB(GLFWwindow *window, double x, double y);
   static void keyboardCB(GLFWwindow *window, int key, int scancode, int action, int mods);
   static void error_callback(int error, const char* description);
+
+  // Helper Functions
+  static void generate_wave(GLFWwindow *window, double x, double y);
+
 };
 
 // ====================================================================

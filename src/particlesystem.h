@@ -1,25 +1,32 @@
 #ifndef _PARTICLESYSTEM_H_
 #define _PARTICLESYSTEM_H_
 
+// GLM includes
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/geometric.hpp>
+
+// STL includes
 #include <cassert>
 #include <vector>
 #include <string>
 #include <list>
+#include <fstream>
+#include <math.h>
 
+// Class includes
+#include "MersenneTwister.h"
+#include "argparser.h"
 #include "glCanvas.h"
 #include "particle.h"
 #include "vectors.h"
 #include "grid.h"
 
-class ArgParser;
 
-// ====================================================================
-// ====================================================================
-// class to manage the data and drawing for an "iterated function system"
+// holds simulation constants
+class ArgParser;
 
 class ParticleSystem {
 
-  // ASSIGNMENT: add whatever additional variables & functions you need
 
 public:
 
@@ -32,20 +39,32 @@ public:
   void update();
   void cleanupVBOs();
 
-  // Simulation Functions
+  // SIMULATION FUCTIONS
+
+  // Creates wave at world coordinates (x,y)
   void createWave(double x, double y);
+
+  // returns (x,y,z) position of a particle given circle attr
   Vec3f getPosCircle(double radius, double radAngle, const Vec3f center);
-  unsigned int getSize(){ return particleRings.size(); }
+
+  // returns how many particles we have
+  unsigned int getSize(){ return particleVec.size(); }
+
+  // Get the angle between vectors
   double angleBetween(Vec3f a, Vec3f b, Vec3f norm);
-  bool outOfRange(Particle * p);
+
+  // Returns true if ww need to split
   bool outOfRangeGrid(Particle * p);
+
+  // What the fuck is this ?!
   std::vector<Particle * >::iterator removeParticle(std::vector<Particle *>::iterator);
+
+  // Moves all particles by a time unit, uses pos attr
   void moveParticle(Particle * p);
+
+  // Creates 3 new particles from split at the same radius
   void splitParticle(Particle * p, Particle * a, Particle * b, Particle * c);
 
-
-  std::vector<Particle*> particleRings;
-  unsigned int call2dis;
 
 private:
 
@@ -55,6 +74,7 @@ private:
   void cleanupPoints();
 
   // REPRESENTATION
+  std::vector<Particle*> particleVec;
   Grid particleGrid;
   ArgParser *args;
   GLuint VaoId;

@@ -1,29 +1,12 @@
 #include "grid.h"
 
-#include "cell.h"
-#include "vectors.h"
 
-#include <cassert>
-#include <math.h>
-/*
-#include "particle.h"
- * This is the implementations for all the methods and util methods
- * used for our grid object we use to store particles in.
- */
-
-// [x] Create constructor
-// [x] Create getter
-// [x] Test these
-
-
-// Default constrcutor
 Grid::Grid(){
     divisions  = 0;
     width      = 0;
     height     = 0;
 }
 
-// constructor
 Grid::Grid(unsigned int world_width, unsigned int world_height,
         unsigned int divisions){
 
@@ -39,7 +22,6 @@ Grid::Grid(unsigned int world_width, unsigned int world_height,
 
 }
 
-// I will returns a pointer to a cell here
 Cell * Grid::getCell(unsigned int i, unsigned int j){
 
   // Errors in getting the index
@@ -52,8 +34,6 @@ Cell * Grid::getCell(unsigned int i, unsigned int j){
 }
 
 
-// This function will return a pointer to cell given
-// world coordinates.
 Cell * Grid::getCellCoordinates(double x, double y){
 
   unsigned int x_index = x / divisions;
@@ -86,7 +66,6 @@ Cell * Grid::getCellCoordinates(double x, double y){
   return cell;
 }
 
-// Put particle inside of the cell
 void Grid::putParticleInGrid(Particle * p){
 
   // Put particle inside the correct cell it in contained in
@@ -95,12 +74,12 @@ void Grid::putParticleInGrid(Particle * p){
 
 }
 
-Cell * Grid::getOldParticleCell(Particle * c){
-    return getCellCoordinates( c->getOldPos().x(), c->getOldPos().y() );
+Cell * Grid::getOldParticleCell(Particle * p){
+    return getCellCoordinates( p->getOldPos().x(), p->getOldPos().y() );
 }
 
-Cell * Grid::getParticleCell(Particle * c){
-    return getCellCoordinates( c->getOldPos().x(), c->getOldPos().y() );
+Cell * Grid::getParticleCell(Particle * p){
+    return getCellCoordinates( p->getOldPos().x(), p->getOldPos().y() );
 }
 
 void Grid::bruteSearch(Particle *c){

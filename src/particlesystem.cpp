@@ -1,21 +1,9 @@
-#include <cassert>
-#include <cmath>
-#include <math.h>
-
-#include <fstream>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/geometric.hpp>// glm::normalize, glm::dot, glm::reflect
-
 #include "particlesystem.h"
-#include "MersenneTwister.h"
-#include "argparser.h"
-#include "grid.h"
 
 typedef std::vector <Particle *>::iterator PartIter;
 
 
 // ====================================================================
-// Constructor
 ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
 
   // Create a grid to use
@@ -27,7 +15,6 @@ ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
 }
 
 // ====================================================================
-// Update Simulation
 void ParticleSystem::update(){
 
   /*
@@ -37,21 +24,15 @@ void ParticleSystem::update(){
    * SideEf: Updates postition of particles/ removes particles
    */
 
-  // Debug Stuff ////////////////
-  int newly_made_particles = 0;//
-  int number_splits        = 0;//
-  int number_deleted       = 0;//
-  bool splitReached = false;   //
-  // ////////////////////////////
 
   // Hold new particles from split
   std::vector<Particle *> newParticles;
 
   // Marked for removal mask, 1 == delete, 0 == keep
-  std::vector<int>deleteMask (particleRings.size(), 0);
+  std::vector<int>deleteMask (particleVec.size(), 0);
   unsigned int maskIndex = 0;
 
-  for(PartIter iter = particleRings.begin(); iter != particleRings.end();){
+  for(PartIter iter = particleVec.begin(); iter != particleVec.end();){
 
      // This current Particle
      Particle * curPart = (*iter);
@@ -64,7 +45,6 @@ void ParticleSystem::update(){
       // Kill this partcile and move to next
       deleteMask[maskIndex++] = 1;
       iter++;
-      number_deleted++;
       continue;
 
     }
@@ -73,8 +53,7 @@ void ParticleSystem::update(){
     if(outOfRangeGrid(curPart)){
 
         // Debug ///////
-        number_splits++;
-        if( curPart->getSplit() == 1 ){ splitReached = true ; }
+        // if( curPart->getSplit() == 1 ){ splitReached= true ; }
 
         // Create 3 new particles and assign them
         Particle * a = new Particle;
@@ -102,12 +81,10 @@ void ParticleSystem::update(){
         assert(curPart->getAmp() > a->getAmp());//
         assert(curPart->getAmp() > b->getAmp());//
         assert(curPart->getAmp() > c->getAmp());//
-        newly_made_particles+=3;                //
         //  //////////////////////////////////////
 
         // Debug Test ///////////////////
         assert( &(*curPart) != &(*c) );//
-        number_deleted++;              //
         //  /////////////////////////////
 
         // Remove and kill the current particle
@@ -135,16 +112,16 @@ void ParticleSystem::update(){
 
 
   // Deletetion step
-  for( unsigned int i = 0 ; i < particleRings.size(); i++){
+  for( unsigned int i = 0 ; i < particleVec.size(); i++){
       // Keep if 0, else delete
       if(deleteMask[i] == 1){
 
           // Remove from grid strucutre
-          Vec3f pos = particleRings[i]->getOldPos();
+          Vec3f pos = particleVec[i]->getOldPos();
           Cell * c = particleGrid.getCellCoordinates(pos.x(), pos.y());
-          bool removed = c->removeParticle(particleRings[i]);
+          bool removed = c->removeParticle(particleVec[i]);
           if(!removed){
-              particleGrid.bruteSearch(particleRings[i]);
+              particleGrid.bruteSearch(particleVec[i]);
               assert(false);
           }
 
@@ -152,24 +129,24 @@ void ParticleSystem::update(){
           if(!newParticles.empty()){
 
               // Put in new particle to fill gap
-              delete particleRings[i];
-              particleRings[i] = newParticles.back();
+              delete particleVec[i];
+              particleVec[i] = newParticles.back();
               newParticles.pop_back();
 
           }else{
 
               // there is stuff to push off
-              if(i != particleRings.size()-1){
+              if(i != particleVec.size()-1){
 
                 // Pop off back of vector to fill the gap
-                delete particleRings[i];
-                particleRings[i] = particleRings.back();
-                particleRings.pop_back();
+                delete particleVec[i];
+                particleVec[i] = particleVec.back();
+                particleVec.pop_back();
 
               }else{
                 // Just delete the last element, nothing need be poped
-                delete particleRings[i];
-                particleRings.pop_back();
+                delete particleVec[i];
+                particleVec.pop_back();
 
               }
           }
@@ -179,7 +156,7 @@ void ParticleSystem::update(){
 
   // Add into the main vector those new particles yet added
   for( unsigned int i = 0; i < newParticles.size(); i++)
-      particleRings.push_back(newParticles[i]);
+      particleVec.push_back(newParticles[i]);
 
   // Recreate the VBOs
   setupVBOs();
@@ -188,7 +165,6 @@ void ParticleSystem::update(){
 
 
 // ====================================================================
-// Setup Functions
 void ParticleSystem::setupVBOs() {
   HandleGLError("enter setupVBOs");
   setupPoints();
@@ -201,19 +177,19 @@ void ParticleSystem::setupPoints() {
 
   // allocate space for the data
 
-  VertexPosColor* points = new VertexPosColor[particleRings.size()];
+  VertexPosColor* points = new VertexPosColor[particleVec.size()];
   MTRand randGen;
 
   unsigned int countSplit2 = 0;
-  for(unsigned int i = 0; i < particleRings.size(); i++){
+  for(unsigned int i = 0; i < particleVec.size(); i++){
 
-     Particle * curPart = particleRings[i];
+     Particle * curPart = particleVec[i];
 
 
      // Getting posititons
      Vec3f pos_2d = curPart->getPos();
      //glm::vec4 pos_3d(pos_2d.x(), pos_2d.y(), randGen.randInt(1), 1); //locked for 2d case
-     glm::vec4 pos_3d(pos_2d.x(), pos_2d.y(), 0, 1); //locked for 2d case
+     glm::vec4 pos_3d(pos_2d.x(), pos_2d.y(), args->worldRange/2.0, 1); //locked for 2d case
 
      glm::vec4 color;
      // even
@@ -247,7 +223,7 @@ void ParticleSystem::setupPoints() {
   // Where we are storing these points
   glGenBuffers(1, &VboId);
   glBindBuffer(GL_ARRAY_BUFFER,VboId);
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleRings.size(), points,GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * particleVec.size(), points,GL_STREAM_DRAW);
 
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), 0);
@@ -276,7 +252,7 @@ void ParticleSystem::drawPoints() const {
   glDrawArrays(
               GL_POINTS,    // The primitive you want to draw it as
               0,            // The start offset
-              particleRings.size());  // The number of points
+              particleVec.size());  // The number of points
 
   HandleGLError("leaving drawPoints");
 }
@@ -419,7 +395,6 @@ bool ParticleSystem::outOfRangeGrid(Particle *p){
         if(curCellVec[i] == p)
             continue;
 
-        call2dis++;
         double dist =curCellVec[i]->getOldPos().Distance3f(pos);
         if(nearestDistance > dist)
             nearestDistance = dist;
@@ -489,7 +464,7 @@ void ParticleSystem::createWave(double x, double y){
           0);
 
       // Add to collection
-      particleRings.push_back(newPart);
+      particleVec.push_back(newPart);
       particleGrid.putParticleInGrid(newPart);
 
     }

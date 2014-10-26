@@ -3,7 +3,9 @@
 
 #include "cell.h"
 #include "particle.h"
-
+#include "vectors.h"
+#include <cassert>
+#include <math.h>
 
 class Grid
 {
@@ -18,19 +20,27 @@ class Grid
     Grid(unsigned int world_width, unsigned int world_hight, 
         unsigned int divisions);
     
-    // accessors
+    // returns pointer to cell within this grid
     Cell * getCell(unsigned int i, unsigned int j);
+
+    // returns pointer to cell given (x,y) in world space
     Cell * getCellCoordinates(double x, double y);
-    Cell * getOldParticleCell(Particle * c);
-    Cell * getParticleCell(Particle * c);
+
+
+    // returns pointer to old cel given particle
+    Cell * getOldParticleCell(Particle * p);
+
+    // returns pointer to new cell given particle
+    Cell * getParticleCell(Particle * p);
+
+    // returns adj cell to input c
     std::vector<Cell *> getParticleCellAdj(Particle * c);
 
+    // searches across all cells and prints cell index
     void bruteSearch(Particle * c);
 
-    // particle modifiers
+    // Put a particle inside a specific cell
     void putParticleInGrid(Particle * c);
-
-
 
   private:
     std::vector <Cell *> grid_vector;
@@ -39,9 +49,5 @@ class Grid
     unsigned int height;
 
 };
-
-
-
-
 
 #endif // GRID_H
