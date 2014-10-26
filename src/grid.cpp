@@ -115,9 +115,10 @@ std::vector<Cell *> Grid::getParticleCellAdj(Particle * c){
   std::vector<Cell *> res;
 
   // Get the particles main location mapped
-  unsigned int x_index = c->getOldPos().x() / divisions;
-  unsigned int y_index = c->getOldPos().y() / divisions;
+  int x_index = c->getOldPos().x() / divisions;
+  int y_index = c->getOldPos().y() / divisions;
 
+  // Projecting back onto boundries of off
   if(x_index >= divisions){
       x_index = divisions - 1;
   }
@@ -134,9 +135,8 @@ std::vector<Cell *> Grid::getParticleCellAdj(Particle * c){
       y_index = 0;
   }
 
-  // Push all back that I can
-
-  for( int x = x_index - 1; x <= y_index + 1; x++){
+  // Looping through 3 * 3 grid
+  for( int x = x_index - 1; x <= x_index + 1; x++){
 
     for( int y = y_index - 1; y <= y_index + 1; y++){
 
@@ -144,6 +144,10 @@ std::vector<Cell *> Grid::getParticleCellAdj(Particle * c){
           res.push_back(getCell(x,y));
       }
     }
+  }
+
+  if(x_index == 0 && y_index == 0){
+      assert(res.size() == 4);
   }
 
   return res;

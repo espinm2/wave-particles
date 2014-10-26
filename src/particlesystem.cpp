@@ -382,23 +382,30 @@ void ParticleSystem::moveParticle(Particle *curPart){
 
 bool ParticleSystem::outOfRangeGrid(Particle *p){
 
-    std::vector<Particle *> curCellVec = particleGrid.getOldParticleCell(p)->getParticles();
+    std::vector<Cell *> adjCellVec = particleGrid.getParticleCellAdj(p);
 
+    // Default setup
     Vec3f pos = p->getOldPos();
     double threshold = .5 * args->particleRadius; // TODO change to real value
     double nearestDistance = 100000;
 
     // Returns closest particle
-    for(unsigned int i = 0; i < curCellVec.size(); i++ ){
+    for(unsigned int c = 0; c < adjCellVec.size(); c++ ){
 
-        // Don't count myself as a buddy
-        if(curCellVec[i] == p)
-            continue;
+      std::vector<Particle *> curCellVec = adjCellVec[c]->getParticles();
 
-        double dist =curCellVec[i]->getOldPos().Distance3f(pos);
-        if(nearestDistance > dist)
-            nearestDistance = dist;
-     }
+      for(unsigned int i = 0; i < curCellVec.size(); i++ ){
+
+          // Don't count myself as a buddy
+          if(curCellVec[i] == p)
+              continue;
+
+          double dist =curCellVec[i]->getOldPos().Distance3f(pos);
+          if(nearestDistance > dist)
+              nearestDistance = dist;
+       }
+
+    }
 
     // using a epsion
     return (fabs(nearestDistance-threshold) <= .0001 || nearestDistance > threshold);

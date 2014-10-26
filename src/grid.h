@@ -37,7 +37,7 @@ class Grid
     Cell * getParticleCell(Particle * p);
 
     // returns adj cell to input c
-    std::vector<Cell *> getParticleCellAdj(Particle * c);
+    std::vector<Cell *> getParticleCellAdj(Particle * p);
 
     // searches across all cells and prints cell index
     void bruteSearch(Particle * c);
