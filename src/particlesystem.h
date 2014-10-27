@@ -23,6 +23,16 @@
 #include "grid.h"
 
 
+/*
+ *╔╦╗╔═╗╔╦╗╔═╗
+ * ║ ║ ║ ║║║ ║
+ * ╩ ╚═╝═╩╝╚═╝
+ *
+ * [ ] Please fix code so we can access particles by refrence when possible
+ * [ ] Implement Grid::placeWallInGrid(..)
+ * [ ] Implement ParticleSystem::calculateBounces(..)
+ *
+ */
 
 // holds simulation constants
 class ArgParser;
@@ -69,6 +79,9 @@ public:
 
   // Moves all particles by a time unit, uses pos attr
   void moveParticle(Particle * p);
+
+  // Change particle p to reflect a bounce if we hit wall, else don't change p
+  void calculateBounces(Particle * &p);
 
   // Creates 3 new particles from split at the same radius
   void splitParticle(Particle * p, Particle * a, Particle * b, Particle * c);

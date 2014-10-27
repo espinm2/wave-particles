@@ -44,7 +44,11 @@ public:
   static bool controlKeyPressed;
   static bool altKeyPressed;
   static bool superKeyPressed;
+
+  // current state of tigger keys
   static bool waveKeyPressed;
+  static bool buildWallKeyPressed;
+  static int  buildingWall;
 
   static void initialize(ArgParser *_args, ParticleSystem *_ifs);
 
@@ -56,6 +60,10 @@ public:
 
   // Helper Functions
   static void generate_wave(GLFWwindow *window, double x, double y);
+  static void convert_world_coor(GLFWwindow *window, double _x, double _y, double &x, double &y);
+  // Used to save temp location of user clicks for walls
+  static void saveWallPosA(GLFWwindow *window, double x, double y);
+  static void saveWallPosB(GLFWwindow *window, double x, double y);
   static void cameraReset();
 
 };

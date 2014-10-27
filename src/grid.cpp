@@ -77,6 +77,17 @@ void Grid::putParticleInGrid(Particle * p){
   cell->push_back(p);
 }
 
+void Grid::putWallInGrid(Wall * &w)
+{
+   // This function will use ray marching to find the
+   // cell that a wall is "contained" in.
+
+   // Add in a copy of the pointer w to each cell
+   // the wall is in.
+
+   return;
+}
+
 Cell * Grid::getOldParticleCell(Particle * p){
     return getCellCoordinates( p->getOldPos().x(), p->getOldPos().y() );
 }
@@ -87,9 +98,9 @@ Cell * Grid::getParticleCell(Particle * p){
 
 void Grid::bruteSearch(Particle *c){
 
-    for(int i = 0 ; i < grid_vector.size(); i ++){
+    for(unsigned int i = 0 ; i < grid_vector.size(); i ++){
 
-        for(int j = 0; j < grid_vector[i]->size(); j++){
+        for(unsigned int j = 0; j < grid_vector[i]->numParticles(); j++){
 
             Particle  *  curPart =  grid_vector[i]->getParticles()[j];
 
@@ -107,22 +118,23 @@ std::vector<Cell *> Grid::getParticleCellAdj(Particle * c){
 
   // Where there result is
   std::vector<Cell *> res;
+  int div = divisions;
 
   // Get the particles main location mapped
-  int x_index = c->getOldPos().x() / divisions;
-  int y_index = c->getOldPos().y() / divisions;
+  int x_index = c->getOldPos().x() / div;
+  int y_index = c->getOldPos().y() / div;
 
   // Projecting back onto boundries of off
-  if(x_index >= divisions){
-      x_index = divisions - 1;
+  if(x_index >= div){
+      x_index = div - 1;
   }
 
   if(x_index < 0){
       x_index = 0;
   }
 
-  if(y_index >= divisions){
-      y_index = divisions - 1;
+  if(y_index >= div){
+      y_index = div - 1;
   }
 
   if(y_index < 0){
@@ -134,7 +146,7 @@ std::vector<Cell *> Grid::getParticleCellAdj(Particle * c){
 
     for( int y = y_index - 1; y <= y_index + 1; y++){
 
-      if(0 <= x && x < divisions && 0 <= y && y < divisions){
+      if(0 <= x && x < div && 0 <= y && y < div){
           res.push_back(getCell(x,y));
       }
     }

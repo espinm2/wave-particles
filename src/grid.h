@@ -4,6 +4,7 @@
 #include "cell.h"
 #include "particle.h"
 #include "vectors.h"
+#include "wall.h"
 #include <cassert>
 #include <math.h>
 
@@ -40,10 +41,14 @@ class Grid
     std::vector<Cell *> getParticleCellAdj(Particle * p);
 
     // searches across all cells and prints cell index
-    void bruteSearch(Particle * c);
+    void bruteSearch(Particle * p);
 
     // Put a particle inside a specific cell
-    void putParticleInGrid(Particle * c);
+    void putParticleInGrid(Particle * p);
+
+    // Put a wall inside a set of cells
+    void putWallInGrid(Wall * &w);
+
 
   private:
     std::vector <Cell *> grid_vector;

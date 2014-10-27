@@ -127,6 +127,32 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
         waveKeyPressed = false;
       }
 
+      if(buildWallKeyPressed){
+          // reset
+
+          if(buildingWall == 0){
+
+              // First time hit
+              saveWallPosA(window,mouseX,mouseY);
+              buildingWall = 1;
+
+          }else if(buildingWall == 1){
+
+              // Second time hit
+              saveWallPosB(window,mouseX,mouseY);
+              buildingWall = 2;
+
+          }else{
+
+              // Send request to main code
+              args->createWallRequest = true;
+              buildingWall = 0;
+              buildWallKeyPressed = false;
+
+          }
+
+      }
+
     } else {
       leftMousePressed = false;
     }
@@ -217,6 +243,10 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
         args->resetRequest = true;
         cameraReset();
 
+    } else if(key == GLFW_KEY_N || key == 'n' || key == 'N'){
+        cameraReset();
+        buildWallKeyPressed = true;
+
     } else if(key == GLFW_KEY_R || key == 'r' || key == 'R'){
         // Experimental
         args->timestep  = args->timestep * -1;
@@ -224,6 +254,8 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
         std::cout << std::endl;
 
     }else if(key == GLFW_KEY_W){
+        cameraReset();
+        std::cout << "Click to create Wave" << std::endl;
         waveKeyPressed = true;
 
     } else {
@@ -235,16 +267,47 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
 
 void GLCanvas::generate_wave(GLFWwindow *window, double x, double y){
 
-        int width,height;
-        glfwGetWindowSize(window,&width,&height);
+        double relWidth,relHeight;
+        convert_world_coor(window,x,y,relWidth,relHeight);
 
-        double relWidth = 100 * x / (double)width;
-        double relHeight= 100 * (height-y) / (double)height;
         partsys->createWave(relWidth,relHeight);
 
         std::cout << "Created wave at ";
         std::cout << relWidth << " " << relHeight << std::endl;
 
+}
+
+void GLCanvas::convert_world_coor(GLFWwindow *window, double _x, double _y, double &x, double &y)
+{
+        /* Replace later with picking */
+        int width,height;
+        glfwGetWindowSize(window,&width,&height);
+
+        x = args->worldRange * _x / (double)width;
+        y = args->worldRange * (height-_y) / (double)height;
+}
+
+
+void GLCanvas::saveWallPosA(GLFWwindow *window, double x, double y)
+{
+        double relWidth,relHeight;
+        convert_world_coor(window,x,y,relWidth,relHeight);
+
+        args->tempWallPosA = Vec3f(relWidth,relHeight,0);
+
+        std::cout << "Created Wall Link A at ";
+        std::cout << relWidth << " " << relHeight << std::endl;
+}
+
+void GLCanvas::saveWallPosB(GLFWwindow *window, double x, double y)
+{
+        double relWidth,relHeight;
+        convert_world_coor(window,x,y,relWidth,relHeight);
+
+        args->tempWallPosB = Vec3f(relWidth,relHeight,0);
+
+        std::cout << "Created Wall Link B at ";
+        std::cout << relWidth << " " << relHeight << std::endl;
 }
 
 // ========================================================

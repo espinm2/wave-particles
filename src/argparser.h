@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+
+#include "vectors.h"
 #include "MersenneTwister.h"
 
 // ====================================================================
@@ -101,8 +103,9 @@ public:
     worldRange      = 100;
     gridDivisions   = 15;
 
-    //Triggers
+    //Triggers + Temp Var
     resetRequest    = false;
+    createWallRequest = false;
 
   }
 
@@ -132,8 +135,11 @@ public:
   unsigned int worldRange;
   unsigned int gridDivisions;
 
-  // Triggers
+  // Triggers + Temp Var
   bool resetRequest;
+  bool createWallRequest;
+  Vec3f tempWallPosA;
+  Vec3f tempWallPosB;
 
 
 

@@ -290,8 +290,6 @@ void ParticleSystem::setupPoints() {
    }
 
 
-
-
   // Working  with Particles VAO
   glBindVertexArray(VaoId[GL_PARTICLES]);
 
@@ -343,11 +341,11 @@ void ParticleSystem::setupWalls() {
   VertexPosColor* wallsVertex = new VertexPosColor[2*wallVec.size()];
 
   glm::vec4 white(1,1,1,1);
-  int index = 0;
-  int z = args->worldRange / 2.0;
+  unsigned int index = 0;
+  unsigned int z = args->worldRange / 2.0;
 
   // For each wall put its a and b in the VBO
-  for(int i = 0; i < wallVec.size(); i++){
+  for(unsigned int i = 0; i < wallVec.size(); i++){
 
       // Getting pos
       Vec3f a = wallVec[i]->getA();
@@ -359,7 +357,6 @@ void ParticleSystem::setupWalls() {
 
       wallsVertex[index++] = VertexPosColor(aPos, white);
       wallsVertex[index++] = VertexPosColor(bPos, white);
-
 
   }
 
@@ -487,9 +484,7 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
 // This is a protoype for testing
 void ParticleSystem::loadWallsFromFile( std::string input_file) {
     // TODO make parser for input
-
-    // for each wall
-    //   particleGrid.putWallInGrid(w)
+    // TODO make sure we call particleGrid.putWallInGrid(..);
 
     // Test input only works on worldRange = 100
     Wall * w1 = new Wall(Vec3f(20,20,0), Vec3f(20,80,0), Vec3f(50,50,0));
@@ -498,10 +493,12 @@ void ParticleSystem::loadWallsFromFile( std::string input_file) {
     Wall * w3 = new Wall(Vec3f(20,20,0), Vec3f(80,20,0), Vec3f(50,50,0));
     Wall * w4 = new Wall(Vec3f(20,80,0), Vec3f(80,80,0), Vec3f(50,50,0));
 
+
     wallVec.push_back(w1);
     wallVec.push_back(w2);
     wallVec.push_back(w3);
     wallVec.push_back(w4);
+
 
 }
 
@@ -531,6 +528,10 @@ void ParticleSystem::moveParticle(Particle *curPart){
   // Change direction of particle
   if(args->isBounded){
 
+    // TODO implement
+    calculateBounces(curPart);
+
+    /* Tagged for destruction */
     double distanceFromCenter = newPos.Distance3f(curPart->getCenter());
 
     // hit a vertical wall
@@ -547,6 +548,11 @@ void ParticleSystem::moveParticle(Particle *curPart){
       curPart->setCenter(newCenter);
     }
   }
+}
+
+void ParticleSystem::calculateBounces(Particle *&p)
+{
+
 }
 
 

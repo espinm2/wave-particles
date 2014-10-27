@@ -72,6 +72,11 @@ int main(int argc, char *argv[]) {
           partsys.reset();
       }
 
+      if(args.createWallRequest){
+          std::cout << "Making Walls" << std::endl;
+          args.createWallRequest = false;
+      }
+
       if(args.animate){
         partsys.update();
       }
