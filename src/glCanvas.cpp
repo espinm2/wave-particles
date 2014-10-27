@@ -26,6 +26,8 @@ bool GLCanvas::controlKeyPressed = false;
 bool GLCanvas::altKeyPressed = false;
 bool GLCanvas::superKeyPressed = false;
 bool GLCanvas::waveKeyPressed = false;
+bool GLCanvas::buildWallKeyPressed = false;
+int  GLCanvas::buildingWall = 0;
 
 // ========================================================
 // Initialize all appropriate OpenGL variables, set
@@ -140,15 +142,9 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 
               // Second time hit
               saveWallPosB(window,mouseX,mouseY);
-              buildingWall = 2;
-
-          }else{
-
-              // Send request to main code
               args->createWallRequest = true;
-              buildingWall = 0;
               buildWallKeyPressed = false;
-
+              buildingWall = 0;
           }
 
       }

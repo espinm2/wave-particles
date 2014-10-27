@@ -418,6 +418,15 @@ void ParticleSystem::cleanupVBOs() {
   HandleGLError("leaving cleanupVBOs");
 }
 
+void ParticleSystem::createWall()
+{
+
+  Wall * wall = new Wall(args->tempWallPosA, args->tempWallPosB, Vec3f(50,50,0));
+  wallVec.push_back(wall);
+  args->createWallRequest = false;
+
+
+}
 
 
 // ====================================================================
