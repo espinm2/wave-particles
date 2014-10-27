@@ -122,7 +122,7 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
   if (which_button == GLFW_MOUSE_BUTTON_1) {
 
     if (action == GLFW_PRESS) {
-      leftMousePressed = true;
+       leftMousePressed = true;
 
       if(waveKeyPressed){
         generate_wave(window,mouseX,mouseY);
@@ -131,6 +131,8 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 
       if(buildWallKeyPressed){
           // reset
+         leftMousePressed = false;
+
 
           if(buildingWall == 0){
 
@@ -241,6 +243,7 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
 
     } else if(key == GLFW_KEY_N || key == 'n' || key == 'N'){
         cameraReset();
+        std::cout << "Please press on sceen twice to generate wall"<< std::endl;
         buildWallKeyPressed = true;
 
     } else if(key == GLFW_KEY_R || key == 'r' || key == 'R'){

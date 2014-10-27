@@ -63,11 +63,14 @@ public:
   // COMMON VECTOR OPERATIONS
   double Length() const {
     return sqrt(data[0]*data[0]+data[1]*data[1]+data[2]*data[2]); }
+
   void Normalize() {
     double length = Length();
     if (length > 0) { Scale (1/length);} 
   }
+
   void Scale(double d) { Scale(d,d,d); }
+
   void Scale(double d0, double d1, double d2) {
     data[0] *= d0;
     data[1] *= d1;
@@ -80,8 +83,6 @@ public:
     double delta_y = y() - b.y();
     double delta_z = z() - b.z();
 
-
-
     return sqrt(delta_x*delta_x + delta_y*delta_y + delta_z*delta_z);
   } 
 
@@ -90,19 +91,46 @@ public:
   double Dot3(const Vec3f &V) const {
     return data[0] * V.data[0] +
       data[1] * V.data[1] +
-      data[2] * V.data[2] ; }
+      data[2] * V.data[2] ;
+  }
 
   static void Cross3(Vec3f &c, const Vec3f &v1, const Vec3f &v2) {
     double x = v1.data[1]*v2.data[2] - v1.data[2]*v2.data[1];
     double y = v1.data[2]*v2.data[0] - v1.data[0]*v2.data[2];
     double z = v1.data[0]*v2.data[1] - v1.data[1]*v2.data[0];
-    c.data[0] = x; c.data[1] = y; c.data[2] = z; }
+    c.data[0] = x; c.data[1] = y; c.data[2] = z;
+  }
 
 
+
+  // Note this will only work in graphics coordinate systesms
+  double AngleBetweenLimited(const Vec3f &b) const{
+
+    double angle = acos( Dot3(b) / ( Length() * b.Length() ) );
+
+    Vec3f c;
+
+    Vec3f::Cross3(c, Vec3f(0,0,1), (*this));
+
+    if(c.Dot3(b) < 0)
+        angle = -angle;
+
+    return angle;
+
+  }
+
+  // Flipped for regular math calculations
   double AngleBetween(const Vec3f &b) const {
-    double top = Dot3(b);
-    double bot = Length() * b.Length();
-    return acos(top/bot);
+
+    double ang = -1 * AngleBetweenLimited(b);
+
+    if(ang == 0){ return 0; }
+
+
+    if( ang <= 0){
+        ang = (M_PI - fabs(ang)) + M_PI;
+    }
+    return ang;
   }
 
   // ---------------------

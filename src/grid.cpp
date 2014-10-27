@@ -45,6 +45,7 @@ Cell * Grid::getCell(unsigned int i, unsigned int j){
 
 Cell * Grid::getCellCoordinates(double x, double y){
 
+
   unsigned int x_index = x / divisions;
   unsigned int y_index = y / divisions;
 

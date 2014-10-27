@@ -70,9 +70,6 @@ public:
   // returns how many particles we have
   unsigned int getSize(){ return particleVec.size(); }
 
-  // Get the angle between vectors
-  double angleBetween(Vec3f a, Vec3f b, Vec3f norm);
-
   // Returns true if ww need to split
   bool outOfRangeGrid(Particle * p);
 

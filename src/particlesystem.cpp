@@ -450,7 +450,8 @@ void ParticleSystem::splitParticle(Particle * curPart, Particle *a, Particle *b,
   Vec3f axis(1,0,0);
   Vec3f norm(0,0,1);
 
-  long double radianAngle   = angleBetween(axis,dir,norm);
+  // long double radianAngle   = angleBetweenLimited(axis,dir,norm);
+  long double radianAngle   = axis.AngleBetweenLimited(dir);
   double distanceFromCenter = center.Distance3f(oldPos);
 
 
@@ -525,7 +526,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
   Vec3f axis(1,0,0);
   Vec3f norm(0,0,1);
 
-  double radianAngle = angleBetween(axis,dir,norm);
+  double radianAngle = axis.AngleBetweenLimited(dir);
   double vx          = args->velocity * cos(radianAngle);
   double vy          = args->velocity * sin(radianAngle);
 
@@ -596,22 +597,6 @@ bool ParticleSystem::outOfRangeGrid(Particle *p){
     return (fabs(nearestDistance-threshold) <= .0001 || nearestDistance > threshold);
 }
 
-
-double ParticleSystem::angleBetween(Vec3f a, Vec3f b, Vec3f norm){
-
-    /*
-     *  Input : Two vectors and the normal between them
-     *  Output: The angle between both vectors in the range of [-PI , PI]
-     */
-
-    double angle = acos(a.Dot3(b) / (a.Length() * b.Length() ) );
-    Vec3f c;
-    Vec3f::Cross3(c,norm,a);
-    if(c.Dot3(b) < 0)
-        angle = -angle;
-
-    return angle;
-}
 
 void ParticleSystem::createWave(double x, double y){
 

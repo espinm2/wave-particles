@@ -12,14 +12,23 @@
 #include "camera.h"
 #include "MersenneTwister.h"
 #include "particlesystem.h"
+#include "utilites.h"
 
-// ====================================================================
-// Bugs
-unsigned int updateCounts = 0;
-// ====================================================================
 
 int main(int argc, char *argv[]) {
 
+  // DEBUG //////////////////////////////////////////////////////
+  std::vector<int> plots = bresenham_line_plot(0,3,4,2);
+
+  std::cout << "Results of plot" << std::endl;
+  for( int i = 0; i < plots.size(); i = i + 2){
+      std::cout << "Plotting " << plots[i]
+                   << ", " << plots[i+1] << std::endl;
+  }
+
+  return 0;
+
+  // DEBUG //////////////////////////////////////////////////////
 
   // parse the command line arguments
   ArgParser args(argc, argv);
@@ -50,6 +59,7 @@ int main(int argc, char *argv[]) {
   // Get a handle for our "MVP" uniform
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
+
   while (!glfwWindowShouldClose(GLCanvas::window)){
     
       glClear(GL_COLOR_BUFFER_BIT); // No GL_DEPTH_BUFFER_BIT
@@ -68,6 +78,7 @@ int main(int argc, char *argv[]) {
       // Pass the matrix to the draw routines (for further editing)
       partsys.drawVBOs(MatrixID,MVP);
 
+      // Request Handling
       if(args.resetRequest){
           partsys.reset();
       }
@@ -76,6 +87,7 @@ int main(int argc, char *argv[]) {
           partsys.createWall();
       }
 
+      // Updating Simulation
       if(args.animate){
         partsys.update();
       }
@@ -97,6 +109,5 @@ int main(int argc, char *argv[]) {
   exit(EXIT_SUCCESS);
 }
 
-// ====================================================================
 // ====================================================================
 
