@@ -84,8 +84,12 @@ public:
 
     // Simulation options
     animate    = true;
+
+    // Visualization
     isBounded  = true;
+
     verbose = false;
+    cell_vis = false;
 
     // Window options + shader loc
     width  = 512;
@@ -118,6 +122,9 @@ public:
   bool animate;
   bool isBounded;
   bool verbose;
+
+  // Visualizations
+  bool cell_vis;
 
   // Window options + shader loc
   unsigned int width;

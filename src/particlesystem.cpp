@@ -202,7 +202,7 @@ void ParticleSystem::setupVBOs() {
   setupPoints();
   setupBBox();
   setupWalls();
-  setupCellVis();
+  if(args->cell_vis) setupCellVis();
 
 
   HandleGLError("leaving setupVBOs");
@@ -322,7 +322,7 @@ void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
   drawPoints();
   drawBBox();
   drawWalls();
-  drawCellsVis();
+  if(args->cell_vis)drawCellsVis();
   HandleGLError("leaving drawVBOs");
 }
 

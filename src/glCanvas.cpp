@@ -241,6 +241,10 @@ void GLCanvas::keyboardCB(GLFWwindow* window, int key, int scancode, int action,
         args->resetRequest = true;
         cameraReset();
 
+    } else if(key == GLFW_KEY_V || key == 'v' || key == 'V'){
+        args->cell_vis ? args->cell_vis = false : args->cell_vis = true;
+        std::cout << "Walls in Grid Visualization Toggle" << std::endl;
+
     } else if(key == GLFW_KEY_N || key == 'n' || key == 'N'){
         cameraReset();
         std::cout << "Please press on sceen twice to generate wall"<< std::endl;

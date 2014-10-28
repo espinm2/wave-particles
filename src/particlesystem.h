@@ -28,9 +28,13 @@
  * ║ ║ ║ ║║║ ║
  * ╩ ╚═╝═╩╝╚═╝
  *
- * [ ] Please fix code so we can access particles by refrence when possible
- * [ ] Implement Grid::placeWallInGrid(..)
+ * [x] Implement Grid::placeWallInGrid(..)
+ * [ ] Move these VBO classes into another file
+ * [ ] Clean up random static var CELLS_NUM_VBO
+ * [ ] Fix Issues with Cubes not changing color + rendering
+ * [?] What is glUniform1i(GLCanvas::ColormodeId, 1)
  * [ ] Implement ParticleSystem::calculateBounces(..)
+ * [ ] Please fix code so we can access particles by refrence when possible
  *
  */
 
