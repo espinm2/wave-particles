@@ -155,9 +155,9 @@ private:
   void drawCellsVis();
 
 
-  void setupCubeVBO(const glm::vec3 pts[8], 
-      const glm::vec3 &color, 
-      std::vector<VBOPosNormalColor> &faces);
+  void setupCubeVBO(const glm::vec4 pts[8],
+      const glm::vec4 &color,
+      std::vector<VertexPosColor> &faces);
 
 
   // REPRESENTATION

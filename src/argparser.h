@@ -97,7 +97,7 @@ public:
     path   = ".";
 
     // Simulations values
-    timestep        = .2;
+    timestep        = .1;
     initAmps        = 1000;
     minAmps         = 10;
     velocity        = 1;

@@ -26,7 +26,7 @@ ParticleSystem::ParticleSystem(ArgParser *a) : args(a){
                  args->gridDivisions);
 
   // Load in walls
-  loadWallsFromFile("");
+  // loadWallsFromFile("");
 
 }
 
@@ -322,6 +322,7 @@ void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
   drawPoints();
   drawBBox();
   drawWalls();
+
   if(args->cell_vis)drawCellsVis();
   HandleGLError("leaving drawVBOs");
 }
@@ -411,35 +412,51 @@ void ParticleSystem::setupCellVis() {
 
     HandleGLError("enter setupCellVis");
     // Load everything into cell_vis_vbo for glCommands
-    std::vector<VBOPosNormalColor> cell_vis_vbo;
+    std::vector<VertexPosColor> cell_vis_vbo;
     int range = args->gridDivisions;
     double dx,dy,dz;
     dx = dy = dz = args->worldRange / (double)args->gridDivisions;
-    int k = range/2.0;
+    int k = range/2.0-1;
 
     // setupCubeVBO(pts2,white,cell_vis_vbo);
     for(int i = 0; i < range; i++){
       for(int j = 0; j < range; j++){
 
+          //if(particleGrid.getCell(i,j)->getWalls().size() > 0){
+
+
+          int particles_in_cell = particleGrid.getCell(i,j)->getParticles().size();
+          glm::vec4 color;
+
+          glm::vec4 pts[8] = { glm::vec4((i+0.1)*dx,(j+0.1)*dy,(k+0.1)*dz,1.0),
+                               glm::vec4((i+0.1)*dx,(j+0.1)*dy,(k+0.9)*dz,1.0),
+                               glm::vec4((i+0.1)*dx,(j+0.9)*dy,(k+0.1)*dz,1.0),
+                               glm::vec4((i+0.1)*dx,(j+0.9)*dy,(k+0.9)*dz,1.0),
+                               glm::vec4((i+0.9)*dx,(j+0.1)*dy,(k+0.1)*dz,1.0),
+                               glm::vec4((i+0.9)*dx,(j+0.1)*dy,(k+0.9)*dz,1.0),
+                               glm::vec4((i+0.9)*dx,(j+0.9)*dy,(k+0.1)*dz,1.0),
+                               glm::vec4((i+0.9)*dx,(j+0.9)*dy,(k+0.9)*dz,1.0) };
+
           if(particleGrid.getCell(i,j)->getWalls().size() > 0){
-
-
-          glm::vec3 pts[8] = { glm::vec3((i+0.1)*dx,(j+0.1)*dy,(k+0.1)*dz),
-                               glm::vec3((i+0.1)*dx,(j+0.1)*dy,(k+0.9)*dz),
-                               glm::vec3((i+0.1)*dx,(j+0.9)*dy,(k+0.1)*dz),
-                               glm::vec3((i+0.1)*dx,(j+0.9)*dy,(k+0.9)*dz),
-                               glm::vec3((i+0.9)*dx,(j+0.1)*dy,(k+0.1)*dz),
-                               glm::vec3((i+0.9)*dx,(j+0.1)*dy,(k+0.9)*dz),
-                               glm::vec3((i+0.9)*dx,(j+0.9)*dy,(k+0.1)*dz),
-                               glm::vec3((i+0.9)*dx,(j+0.9)*dy,(k+0.9)*dz) };
-
-          setupCubeVBO(pts,glm::vec3(),cell_vis_vbo);
+              if(particles_in_cell > 0){
+                color = glm::vec4(0.9,0.2,0.1,.1);
+              }else{
+                color = glm::vec4(0.2,0.9,0.5,.1);
+              }
+          }else if(particles_in_cell > 0){
+              color = glm::vec4(0.8,0.9,0.5*(particles_in_cell/20.0),.1);
+          }else{
+              color = glm::vec4(0.2,0.3,0.5,.1);
           }
+
+          setupCubeVBO(pts,color,cell_vis_vbo);
+         // }
       }
     }
 
 
   CELLS_VERTICES_NUM = cell_vis_vbo.size();
+
 
   // Bind the VAO
   glBindVertexArray(VaoId[GL_CELLS]);
@@ -447,20 +464,17 @@ void ParticleSystem::setupCellVis() {
   // Bind VBO and load Data
   glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_CELLS]);
   glBufferData(GL_ARRAY_BUFFER,
-               sizeof(VBOPosNormalColor)*cell_vis_vbo.size(),
+               sizeof(VertexPosColor)*cell_vis_vbo.size(),
                &cell_vis_vbo[0], GL_STATIC_DRAW);
 
   // To feed data for shaders?
   // glUniform1i(GLCanvas::colormodeID, 1);
 
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(glm::vec3),(void*)0);
+  glVertexAttribPointer(0,4,GL_FLOAT,GL_FALSE,sizeof(VertexPosColor),0);
 
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,3*sizeof(glm::vec3),(void*)sizeof(glm::vec3) );
-
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 3, GL_FLOAT,GL_FALSE,3*sizeof(glm::vec3), (void*)(sizeof(glm::vec3)*2));
+  glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,sizeof(VertexPosColor),(GLvoid*)sizeof(glm::vec4) );
 
   HandleGLError("exit setupCellVis");
 
@@ -478,49 +492,50 @@ void ParticleSystem::drawCellsVis() {
 
 }
 
-void ParticleSystem::setupCubeVBO(const glm::vec3 pts[8], const glm::vec3 &color, std::vector<VBOPosNormalColor> &faces) {
+void ParticleSystem::setupCubeVBO(const glm::vec4 pts[8], const glm::vec4 &color, std::vector<VertexPosColor> &faces) {
   
-  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(-1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(-1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(-1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(-1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(-1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(-1,0,0),color));
+  faces.push_back(VertexPosColor(pts[0],color));
+  faces.push_back(VertexPosColor(pts[1],color));
+  faces.push_back(VertexPosColor(pts[3],color));
+
+  faces.push_back(VertexPosColor(pts[0],color));
+  faces.push_back(VertexPosColor(pts[3],color));
+  faces.push_back(VertexPosColor(pts[2],color));
+
+  faces.push_back(VertexPosColor(pts[4],color));
+  faces.push_back(VertexPosColor(pts[6],color));
+  faces.push_back(VertexPosColor(pts[7],color));
+  faces.push_back(VertexPosColor(pts[4],color));
+  faces.push_back(VertexPosColor(pts[7],color));
+  faces.push_back(VertexPosColor(pts[5],color));
   
-  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(1,0,0),color));
-  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(1,0,0),color));
+  faces.push_back(VertexPosColor(pts[0],color));
+  faces.push_back(VertexPosColor(pts[2],color));
+  faces.push_back(VertexPosColor(pts[6],color));
+  faces.push_back(VertexPosColor(pts[0],color));
+  faces.push_back(VertexPosColor(pts[6],color));
+  faces.push_back(VertexPosColor(pts[4],color));
   
-  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,0,-1),color));
-  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(0,0,-1),color));
-  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(0,0,-1),color));
-  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,0,-1),color));
-  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(0,0,-1),color));
-  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(0,0,-1),color));
+  faces.push_back(VertexPosColor(pts[1],color));
+  faces.push_back(VertexPosColor(pts[5],color));
+  faces.push_back(VertexPosColor(pts[7],color));
+  faces.push_back(VertexPosColor(pts[1],color));
+  faces.push_back(VertexPosColor(pts[7],color));
+  faces.push_back(VertexPosColor(pts[3],color));
   
-  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(0,0,1),color));
-  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(0,0,1),color));
-  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,0,1),color));
-  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(0,0,1),color));
-  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,0,1),color));
-  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(0,0,1),color));
+  faces.push_back(VertexPosColor(pts[0],color));
+  faces.push_back(VertexPosColor(pts[4],color));
+  faces.push_back(VertexPosColor(pts[5],color));
+  faces.push_back(VertexPosColor(pts[0],color));
+  faces.push_back(VertexPosColor(pts[5],color));
+  faces.push_back(VertexPosColor(pts[1],color));
   
-  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,-1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(0,-1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(0,-1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,-1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(0,-1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(0,-1,0),color));
-  
-  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(0,1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(0,1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(0,1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,1,0),color));
-  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(0,1,0),color));
+  faces.push_back(VertexPosColor(pts[2],color));
+  faces.push_back(VertexPosColor(pts[3],color));
+  faces.push_back(VertexPosColor(pts[7],color));
+  faces.push_back(VertexPosColor(pts[2],color));
+  faces.push_back(VertexPosColor(pts[7],color));
+  faces.push_back(VertexPosColor(pts[6],color));
 
 }
 void ParticleSystem::drawPoints() const {
@@ -692,8 +707,7 @@ void ParticleSystem::moveParticle(Particle *curPart){
   }
 }
 
-void ParticleSystem::calculateBounces(Particle *&p)
-{
+void ParticleSystem::calculateBounces(Particle *&p) {
 
 }
 
@@ -732,12 +746,12 @@ bool ParticleSystem::outOfRangeGrid(Particle *p){
 
 void ParticleSystem::createWave(double x, double y){
 
-  /*
-   * Input : None
-   * Output: This function make a wave on the XY plane given your input
-   * Asumpt: That cluster size is non-zero
-   * SideEf: Adds a ring to the memeber varible partileRing
-   */
+    /*
+     * Input : None
+     * Output: This function make a wave on the XY plane given your input
+     * Asumpt: That cluster size is non-zero
+     * SideEf: Adds a ring to the memeber varible partileRing
+     */
 
     // Location Pressed / Center of cluster
     Vec3f center(x,y,0);

@@ -167,9 +167,6 @@ void GLCanvas::mousebuttonCB(GLFWwindow *window, int which_button, int action, i
 // ========================================================
 
 void GLCanvas::mousemotionCB(GLFWwindow *window, double x, double y) {
-  if(shiftKeyPressed){
-      std::cout << "Trigger shift" << std::endl;
-  }
 
   // camera controls that work well for a 3 button mouse
   if (!shiftKeyPressed && !controlKeyPressed && !altKeyPressed) {

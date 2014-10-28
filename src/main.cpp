@@ -23,17 +23,18 @@ int main(int argc, char *argv[]) {
   ParticleSystem partsys(&args);
   GLCanvas::initialize(&args,&partsys);
 
+  // Blending + Paramaters
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   // Background color
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
   // Not need because 2D Simulations
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-  // glEnable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
 
-  // Blending + Paramaters
-  // glEnable(GL_BLEND);
-  // glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
   // Setting Points Size
   glPointSize(3.0);
@@ -43,7 +44,6 @@ int main(int argc, char *argv[]) {
 
   // Get a handle for our "MVP" uniform
   GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-
 
   while (!glfwWindowShouldClose(GLCanvas::window)){
     
