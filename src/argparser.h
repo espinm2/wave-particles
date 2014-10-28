@@ -101,7 +101,7 @@ public:
     clusterRadius   = .1;
     initClusterSize = 4;
     worldRange      = 100;
-    gridDivisions   = 15;
+    gridDivisions   = 20;
 
     //Triggers + Temp Var
     resetRequest    = false;

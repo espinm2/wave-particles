@@ -9,6 +9,7 @@ add_executable(simulation
   grid.cpp
   wall.cpp
   particlesystem.cpp
+  utilites.cpp
 )
 
 # We've placed a few FindXXX.cmake files in the the source directory

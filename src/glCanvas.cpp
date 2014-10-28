@@ -1,7 +1,4 @@
 #include "glCanvas.h"
-#include "particlesystem.h"
-#include "argparser.h"
-#include "camera.h"
 
 // ========================================================
 // static variables of GLCanvas class
@@ -14,6 +11,9 @@ GLFWwindow* GLCanvas::window = NULL;
 // mouse position
 int GLCanvas::mouseX = 0;
 int GLCanvas::mouseY = 0;
+
+// Color mode id
+// int GLCanvas::colormodeID;
 
 // which mouse button
 bool GLCanvas::leftMousePressed = false;

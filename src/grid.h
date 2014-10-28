@@ -5,6 +5,7 @@
 #include "particle.h"
 #include "vectors.h"
 #include "wall.h"
+#include "utilites.h"
 #include <cassert>
 #include <math.h>
 
@@ -30,6 +31,8 @@ class Grid
     // returns pointer to cell given (x,y) in world space
     Cell * getCellCoordinates(double x, double y);
 
+    // Returns by refrence the index
+    void getIndex(const Vec3f& point, int & index_x, int & index_y);
 
     // returns pointer to old cel given particle
     Cell * getOldParticleCell(Particle * p);

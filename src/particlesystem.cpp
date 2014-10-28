@@ -4,8 +4,12 @@
 #define GL_PARTICLES   0
 #define GL_BOUNDINGBOX 1
 #define GL_WALL        2
+#define GL_CELLS       3
 
-#define BBOX_VERTICES 5
+// Will be removed by real walls
+#define BBOX_VERTICES_NUM 5
+static unsigned int CELLS_VERTICES_NUM = 0;
+
 typedef std::vector <Particle *>::iterator PartIter;
 
 
@@ -198,6 +202,7 @@ void ParticleSystem::setupVBOs() {
   setupPoints();
   setupBBox();
   setupWalls();
+  setupCellVis();
 
 
   HandleGLError("leaving setupVBOs");
@@ -209,7 +214,7 @@ void ParticleSystem::setupBBox(){
   // allocate space for the data
 
   // Manual Bounding Box
-  VertexPosColor* vertices = new VertexPosColor[BBOX_VERTICES];
+  VertexPosColor* vertices = new VertexPosColor[BBOX_VERTICES_NUM];
 
   int s = args->worldRange;
   int z = s / 2;
@@ -228,7 +233,7 @@ void ParticleSystem::setupBBox(){
   glBindVertexArray(VaoId[GL_BOUNDINGBOX]);
 
   glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_BOUNDINGBOX]);
-  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * BBOX_VERTICES, vertices,GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,sizeof(VertexPosColor) * BBOX_VERTICES_NUM, vertices,GL_STATIC_DRAW);
 
   // For postion
   glEnableVertexAttribArray(0);
@@ -237,7 +242,6 @@ void ParticleSystem::setupBBox(){
   // For color
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexPosColor), (GLvoid*)sizeof(glm::vec4));
-
 
 
   delete [] vertices;
@@ -318,12 +322,13 @@ void ParticleSystem::drawVBOs(GLuint MatrixID,const glm::mat4 &m) {
   drawPoints();
   drawBBox();
   drawWalls();
+  drawCellsVis();
   HandleGLError("leaving drawVBOs");
 }
 
 void ParticleSystem::drawBBox() const {
 
-
+  HandleGLError("enter drawBBOX");
   glBindVertexArray(VaoId[GL_BOUNDINGBOX]);
   glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_BOUNDINGBOX]);
 
@@ -331,12 +336,14 @@ void ParticleSystem::drawBBox() const {
   glDrawArrays(
               GL_LINE_STRIP,    // The primitive you want to draw it as
               0,            // The start offset
-              BBOX_VERTICES);  // The number of points
+              BBOX_VERTICES_NUM);  // The number of points
 
   HandleGLError("leaving drawBBOX");
 }
 
 void ParticleSystem::setupWalls() {
+
+  HandleGLError("enter setupWalls");
 
   VertexPosColor* wallsVertex = new VertexPosColor[2*wallVec.size()];
 
@@ -384,10 +391,12 @@ void ParticleSystem::setupWalls() {
 }
 
 void ParticleSystem::drawWalls() const {
+
+  HandleGLError("enter drawWalls");
+
   glBindVertexArray(VaoId[GL_WALL]);
   glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_WALL]);
 
-  HandleGLError("enter drawWalls");
 
   glDrawArrays(
               GL_LINES,    // The primitive you want to draw it as
@@ -395,6 +404,123 @@ void ParticleSystem::drawWalls() const {
               wallVec.size()*2);  // The number of points
 
   HandleGLError("leaving drawWalls");
+
+}
+
+void ParticleSystem::setupCellVis() {
+
+    HandleGLError("enter setupCellVis");
+    // Load everything into cell_vis_vbo for glCommands
+    std::vector<VBOPosNormalColor> cell_vis_vbo;
+    int range = args->gridDivisions;
+    double dx,dy,dz;
+    dx = dy = dz = args->worldRange / (double)args->gridDivisions;
+    int k = range/2.0;
+
+    // setupCubeVBO(pts2,white,cell_vis_vbo);
+    for(int i = 0; i < range; i++){
+      for(int j = 0; j < range; j++){
+
+          if(particleGrid.getCell(i,j)->getWalls().size() > 0){
+
+
+          glm::vec3 pts[8] = { glm::vec3((i+0.1)*dx,(j+0.1)*dy,(k+0.1)*dz),
+                               glm::vec3((i+0.1)*dx,(j+0.1)*dy,(k+0.9)*dz),
+                               glm::vec3((i+0.1)*dx,(j+0.9)*dy,(k+0.1)*dz),
+                               glm::vec3((i+0.1)*dx,(j+0.9)*dy,(k+0.9)*dz),
+                               glm::vec3((i+0.9)*dx,(j+0.1)*dy,(k+0.1)*dz),
+                               glm::vec3((i+0.9)*dx,(j+0.1)*dy,(k+0.9)*dz),
+                               glm::vec3((i+0.9)*dx,(j+0.9)*dy,(k+0.1)*dz),
+                               glm::vec3((i+0.9)*dx,(j+0.9)*dy,(k+0.9)*dz) };
+
+          setupCubeVBO(pts,glm::vec3(),cell_vis_vbo);
+          }
+      }
+    }
+
+
+  CELLS_VERTICES_NUM = cell_vis_vbo.size();
+
+  // Bind the VAO
+  glBindVertexArray(VaoId[GL_CELLS]);
+
+  // Bind VBO and load Data
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_CELLS]);
+  glBufferData(GL_ARRAY_BUFFER,
+               sizeof(VBOPosNormalColor)*cell_vis_vbo.size(),
+               &cell_vis_vbo[0], GL_STATIC_DRAW);
+
+  // To feed data for shaders?
+  // glUniform1i(GLCanvas::colormodeID, 1);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(glm::vec3),(void*)0);
+
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,3*sizeof(glm::vec3),(void*)sizeof(glm::vec3) );
+
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 3, GL_FLOAT,GL_FALSE,3*sizeof(glm::vec3), (void*)(sizeof(glm::vec3)*2));
+
+  HandleGLError("exit setupCellVis");
+
+}
+
+void ParticleSystem::drawCellsVis() {
+  HandleGLError("enter drawCellsVis");
+
+  glBindVertexArray(VaoId[GL_CELLS]);
+  glBindBuffer(GL_ARRAY_BUFFER,VboId[GL_CELLS]);
+
+  glDrawArrays(GL_TRIANGLES, 0, CELLS_VERTICES_NUM);
+
+  HandleGLError("leaving drawCellsVis");
+
+}
+
+void ParticleSystem::setupCubeVBO(const glm::vec3 pts[8], const glm::vec3 &color, std::vector<VBOPosNormalColor> &faces) {
+  
+  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(-1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(-1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(-1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(-1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(-1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(-1,0,0),color));
+  
+  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(1,0,0),color));
+  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(1,0,0),color));
+  
+  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,0,-1),color));
+  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(0,0,-1),color));
+  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(0,0,-1),color));
+  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,0,-1),color));
+  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(0,0,-1),color));
+  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(0,0,-1),color));
+  
+  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(0,0,1),color));
+  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(0,0,1),color));
+  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,0,1),color));
+  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(0,0,1),color));
+  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,0,1),color));
+  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(0,0,1),color));
+  
+  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,-1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[4],glm::vec3(0,-1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(0,-1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[0],glm::vec3(0,-1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[5],glm::vec3(0,-1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[1],glm::vec3(0,-1,0),color));
+  
+  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(0,1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[3],glm::vec3(0,1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[2],glm::vec3(0,1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[7],glm::vec3(0,1,0),color));
+  faces.push_back(VBOPosNormalColor(pts[6],glm::vec3(0,1,0),color));
 
 }
 void ParticleSystem::drawPoints() const {
@@ -423,6 +549,7 @@ void ParticleSystem::createWall()
 
   Wall * wall = new Wall(args->tempWallPosA, args->tempWallPosB, Vec3f(50,50,0));
   wallVec.push_back(wall);
+  particleGrid.putWallInGrid(wall);
   args->createWallRequest = false;
 
 
@@ -497,7 +624,7 @@ void ParticleSystem::loadWallsFromFile( std::string input_file) {
     // TODO make sure we call particleGrid.putWallInGrid(..);
 
     // Test input only works on worldRange = 100
-    Wall * w1 = new Wall(Vec3f(20,20,0), Vec3f(20,80,0), Vec3f(50,50,0));
+    Wall * w1 = new Wall(Vec3f(0,0,0), Vec3f(100,100,0), Vec3f(50,50,0));
     Wall * w2 = new Wall(Vec3f(80,20,0), Vec3f(80,80,0), Vec3f(50,50,0));
 
     Wall * w3 = new Wall(Vec3f(20,20,0), Vec3f(80,20,0), Vec3f(50,50,0));
@@ -505,9 +632,14 @@ void ParticleSystem::loadWallsFromFile( std::string input_file) {
 
 
     wallVec.push_back(w1);
-    wallVec.push_back(w2);
-    wallVec.push_back(w3);
-    wallVec.push_back(w4);
+    //wallVec.push_back(w2);
+    //wallVec.push_back(w3);
+    //wallVec.push_back(w4);
+
+    particleGrid.putWallInGrid(w1);
+    //particleGrid.putWallInGrid(w2);
+    //particleGrid.putWallInGrid(w3);
+    //particleGrid.putWallInGrid(w4);
 
 
 }

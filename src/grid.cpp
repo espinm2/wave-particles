@@ -45,9 +45,8 @@ Cell * Grid::getCell(unsigned int i, unsigned int j){
 
 Cell * Grid::getCellCoordinates(double x, double y){
 
-
-  unsigned int x_index = x / divisions;
-  unsigned int y_index = y / divisions;
+  unsigned int x_index = x / (width / (double)divisions);
+  unsigned int y_index = y / (height / (double)divisions);
 
   // Out of range checks, that you
   if(x_index >= divisions){
@@ -71,6 +70,32 @@ Cell * Grid::getCellCoordinates(double x, double y){
   return cell;
 }
 
+void Grid::getIndex(const Vec3f &point, int & x_index, int & y_index) {
+
+  int divisions = (int)this->divisions;
+
+  x_index = point.x() / (width  / (double)divisions);
+  y_index = point.y() / (height / (double)divisions);
+
+  // Out of range checks, that you
+  if(x_index >= divisions){
+      x_index = divisions - 1;
+  }
+
+  if(x_index < 0){
+      x_index = 0;
+  }
+
+  if(y_index >= divisions){
+      y_index = divisions - 1;
+  }
+
+  if(y_index < 0){
+      y_index = 0;
+  }
+
+}
+
 void Grid::putParticleInGrid(Particle * p){
 
   // Put particle inside the correct cell it in contained in
@@ -80,13 +105,26 @@ void Grid::putParticleInGrid(Particle * p){
 
 void Grid::putWallInGrid(Wall * &w)
 {
-   // This function will use ray marching to find the
-   // cell that a wall is "contained" in.
+    std::cout << "Putting Wall In Grid" << std::endl;
 
-   // Add in a copy of the pointer w to each cell
-   // the wall is in.
+    // Get the start and end of both point A and B
+    Vec3f a = w->getA();
+    Vec3f b = w->getB();
 
-   return;
+    // Getting relavent indexies
+    int ax,ay,bx,by;
+    getIndex(a,ax,ay); getIndex(b,bx,by);
+
+    std::cout << "Index of Wall A " << ax << ", " << ay << std::endl;
+    std::cout << "Index of Wall B " << bx << ", " << by << std::endl;
+
+    std::vector<int> indexCell = bresenham_line_plot(ax,ay,bx,by);
+
+    // For each set of index, update the cells
+    for(unsigned int i = 0; i < indexCell.size(); i = i + 2){
+        getCell(indexCell[i], indexCell[i+1])->push_back(w);
+    }
+
 }
 
 Cell * Grid::getOldParticleCell(Particle * p){
@@ -122,25 +160,9 @@ std::vector<Cell *> Grid::getParticleCellAdj(Particle * c){
   int div = divisions;
 
   // Get the particles main location mapped
-  int x_index = c->getOldPos().x() / div;
-  int y_index = c->getOldPos().y() / div;
+  int x_index, y_index;
 
-  // Projecting back onto boundries of off
-  if(x_index >= div){
-      x_index = div - 1;
-  }
-
-  if(x_index < 0){
-      x_index = 0;
-  }
-
-  if(y_index >= div){
-      y_index = div - 1;
-  }
-
-  if(y_index < 0){
-      y_index = 0;
-  }
+  getIndex(c->getOldPos(),x_index,y_index);
 
   // Looping through 3 * 3 grid
   for( int x = x_index - 1; x <= x_index + 1; x++){

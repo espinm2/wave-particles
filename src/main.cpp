@@ -12,23 +12,9 @@
 #include "camera.h"
 #include "MersenneTwister.h"
 #include "particlesystem.h"
-#include "utilites.h"
 
 
 int main(int argc, char *argv[]) {
-
-  // DEBUG //////////////////////////////////////////////////////
-  std::vector<int> plots = bresenham_line_plot(0,3,4,2);
-
-  std::cout << "Results of plot" << std::endl;
-  for( int i = 0; i < plots.size(); i = i + 2){
-      std::cout << "Plotting " << plots[i]
-                   << ", " << plots[i+1] << std::endl;
-  }
-
-  return 0;
-
-  // DEBUG //////////////////////////////////////////////////////
 
   // parse the command line arguments
   ArgParser args(argc, argv);
@@ -37,21 +23,20 @@ int main(int argc, char *argv[]) {
   ParticleSystem partsys(&args);
   GLCanvas::initialize(&args,&partsys);
 
+  // Background color
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+  // Not need because 2D Simulations
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+  // glEnable(GL_CULL_FACE);
 
   // Blending + Paramaters
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+  // glEnable(GL_BLEND);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
   // Setting Points Size
   glPointSize(3.0);
-
-  // Not need because 2D Simulations
-  // glEnable(GL_DEPTH_TEST);
-  // glDepthFunc(GL_LESS);
-  // glEnable(GL_CULL_FACE);
-
-  // Background color
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
   // Create and compile our GLSL program from the shaders
   GLuint programID = LoadShaders( args.path+"/shader.vertexshader", args.path+"/shader.fragmentshader" );
@@ -62,7 +47,7 @@ int main(int argc, char *argv[]) {
 
   while (!glfwWindowShouldClose(GLCanvas::window)){
     
-      glClear(GL_COLOR_BUFFER_BIT); // No GL_DEPTH_BUFFER_BIT
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // No GL_DEPTH_BUFFER_BIT
 
       glUseProgram(programID); // Use these shaders
 

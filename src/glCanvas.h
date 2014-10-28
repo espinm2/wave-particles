@@ -12,6 +12,10 @@
 #include <cassert>
 #include <string>
 
+#include "particlesystem.h"
+#include "argparser.h"
+#include "camera.h"
+
 class ArgParser;
 class ParticleSystem;
 class Camera;
@@ -29,6 +33,9 @@ public:
   static ParticleSystem *partsys;
   static Camera* camera;
   static GLFWwindow* window;
+
+  // Color Mode Id
+  // static GLuint colormodeID;
 
   // mouse position
   static int mouseX;

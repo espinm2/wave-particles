@@ -34,6 +34,49 @@
  *
  */
 
+// ====================================================================
+// some helper stuff for VBOs
+class VertexPosColor {
+public:
+  // by default vertices are set to black
+  VertexPosColor(const glm::vec4 &pos=glm::vec4(0,0,0,1),
+                 const glm::vec4 &color=glm::vec4(0,0,0,1)) :
+    XYZW(pos),RGBA(color) {}
+  glm::vec4 XYZW;
+  glm::vec4 RGBA;
+};
+
+class VBOPosNormalColor{
+
+public:
+  VBOPosNormalColor() {}
+
+  VBOPosNormalColor(const glm::vec3 &p) {
+    x = p.x; y = p.y; z = p.z;
+    nx = 1; ny = 0; nz = 0;
+    r = 0; g = 0; b = 0;
+  }
+  VBOPosNormalColor(const glm::vec3 &p, const glm::vec3 &n, const glm::vec3 &c) {
+    x = p.x; y = p.y; z = p.z;
+    nx = n.x; ny = n.y; nz = n.z;
+    r = c.x; g = c.y; b = c.z;
+  }
+  float x, y, z;    // position
+  float nx, ny, nz; // normal
+  float r, g, b;    // color
+
+};
+
+class VBOIndexedTri{
+public:
+  VBOIndexedTri() {}
+  VBOIndexedTri(unsigned int a, unsigned int b, unsigned int c) {
+    verts[0] = a;
+    verts[1] = b;
+    verts[2] = c;
+  }
+  unsigned int verts[3];
+};
 // holds simulation constants
 class ArgParser;
 
@@ -47,12 +90,6 @@ public:
 
   // DESTRUCTOR
   ~ParticleSystem();
-
-  // HELPER FUNCTIONS FOR RENDERING
-  void setupVBOs();
-  void drawVBOs(GLuint MatrixID,const glm::mat4 &MVP);
-  void update();
-  void cleanupVBOs();
 
   // SIMULATION FUCTIONS
 
@@ -92,6 +129,12 @@ public:
   void loadWallsFromFile(std::string input_file);
 
 
+  // HELPER FUNCTIONS FOR RENDERING
+  void setupVBOs();
+  void drawVBOs(GLuint MatrixID,const glm::mat4 &MVP);
+  void update();
+  void cleanupVBOs();
+
 private:
 
   // private helper functions for VBO setup
@@ -104,6 +147,14 @@ private:
   void setupWalls();
   void drawWalls() const;
 
+  void setupCellVis();
+  void drawCellsVis();
+
+
+  void setupCubeVBO(const glm::vec3 pts[8], 
+      const glm::vec3 &color, 
+      std::vector<VBOPosNormalColor> &faces);
+
 
   // REPRESENTATION
   std::vector<Particle*> particleVec;
@@ -112,7 +163,7 @@ private:
   ArgParser *args;
 
   // Number of VAOs and VBOs (one per object)
-  static const int NumVAO = 3;
+  static const int NumVAO = 4;
   static const int NumVBO = NumVAO;
 
   GLuint VaoId[NumVAO];
@@ -120,16 +171,5 @@ private:
 
 };
 
-// ====================================================================
-// some helper stuff for VBOs
-class VertexPosColor {
-public:
-  // by default vertices are set to black
-  VertexPosColor(const glm::vec4 &pos=glm::vec4(0,0,0,1), 
-                 const glm::vec4 &color=glm::vec4(0,0,0,1)) :
-    XYZW(pos),RGBA(color) {}
-  glm::vec4 XYZW;
-  glm::vec4 RGBA;
-};
 
 #endif
