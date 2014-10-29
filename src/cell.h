@@ -17,8 +17,8 @@ class Cell{
       const unsigned int numWalls() const { return wallCellVec.size(); }
 
       // Getters
-      const std::vector< Particle *> getParticles() const { return particleCellVec;}
-      const std::vector< Wall *> getWalls() const { return wallCellVec; }
+      const std::vector< Particle *> & getParticles() const { return particleCellVec;}
+      const std::vector< Wall *> & getWalls() const { return wallCellVec; }
 
       // Commonly used setters
       void push_back( Particle * a){ particleCellVec.push_back(a); }

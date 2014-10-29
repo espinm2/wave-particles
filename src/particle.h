@@ -34,18 +34,18 @@ class Particle
       const   Vec3f & getPos()        const { return position; }
       const   Vec3f & getOldPos()     const { return position;}
       const   Vec3f & getCenter()     const { return center; }
-      const   Vec3f getDir()          const { Vec3f res = (position-center); res.Normalize();
+              Vec3f getDir()          const { Vec3f res = (position-center); res.Normalize();
                                               return res; }
-      double  getAmp()                const { return ampage; }
-      int     getSplit()              const { return splits; }
+      double  getAmp()               const { return ampage; }
+      int     getSplit()             const { return splits; }
 
 
       // Modifiers
       void setPos     (const Vec3f & pos) { position = pos; }
       void setOldPos  (const Vec3f & pos) { oldPosition = pos; }
       void setCenter  (const Vec3f & pos) { center = pos; }
-      void setAmp     (double a)              { ampage = a; }
-      void setSplit   (int s)                 { splits = s; }
+      void setAmp     (const double & a)  { ampage = a; }
+      void setSplit   (const int    & s)  { splits = s; }
 
       // Debugging Functions
       friend std::ostream& operator<<(std::ostream &, const Particle &);
