@@ -9,6 +9,7 @@ add_executable(simulation
   grid.cpp
   wall.cpp
   particlesystem.cpp
+  particlesystem_render.cpp
   utilites.cpp
 )
 

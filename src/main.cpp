@@ -13,6 +13,20 @@
 #include "MersenneTwister.h"
 #include "particlesystem.h"
 
+/*
+ *╔╦╗╔═╗╔╦╗╔═╗
+ * ║ ║ ║ ║║║ ║
+ * ╩ ╚═╝═╩╝╚═╝
+ *
+ * [x] Implement Grid::placeWallInGrid(..)
+ * [x] Move these VBO classes into another file
+ * [x] Clean up random static var CELLS_NUM_VBO
+ * [x] Fix Issues with Cubes not changing color + rendering
+ * [?] What is glUniform1i(GLCanvas::ColormodeId, 1)
+ * [ ] Implement ParticleSystem::calculateBounces(..)
+ * [ ] Please fix code so we can access particles by refrence when possible
+ *
+ */
 
 int main(int argc, char *argv[]) {
 
