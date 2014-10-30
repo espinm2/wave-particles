@@ -2,6 +2,7 @@
 #define WALL_H
 
 #include "vectors.h"
+#include <cmath>
 
 class Wall
 {
@@ -25,6 +26,11 @@ public:
     void setA(const Vec3f &value);
     void setB(const Vec3f &value);
     void setIndoorDir(const Vec3f &value);
+
+
+    // useful functions
+    Vec3f getNormalOfWall();
+
 
 
 private:

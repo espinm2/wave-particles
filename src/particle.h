@@ -32,7 +32,7 @@ class Particle
 
       // Accessors
       const   Vec3f & getPos()        const { return position; }
-      const   Vec3f & getOldPos()     const { return position;}
+      const   Vec3f & getOldPos()     const { return oldPosition;}
       const   Vec3f & getCenter()     const { return center; }
               Vec3f getDir()          const { Vec3f res = (position-center); res.Normalize();
                                               return res; }

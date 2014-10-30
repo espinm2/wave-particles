@@ -130,6 +130,7 @@ void ParticleSystem::update(){
           Vec3f pos = particleVec[i]->getOldPos();
           Cell * c = particleGrid.getCellCoordinates(pos.x(), pos.y());
           bool removed = c->removeParticle(particleVec[i]);
+
           if(!removed){
               particleGrid.bruteSearch(particleVec[i]);
               assert(false);
@@ -154,6 +155,7 @@ void ParticleSystem::update(){
                 particleVec.pop_back();
 
               }else{
+
                 // Just delete the last element, nothing need be poped
                 delete particleVec[i];
                 particleVec.pop_back();
@@ -319,6 +321,57 @@ void ParticleSystem::moveParticle(Particle *curPart){
 }
 
 void ParticleSystem::calculateBounces(Particle *&p) {
+    // Assumes that the particles moved
+
+    Cell * cell = particleGrid.getParticleCell(p);
+
+    // If there are walls in this grid
+    if(cell->numWalls() > 0){
+
+        // Get the walls I have to search
+        std::vector<Wall *> walls = cell->getWalls();
+
+        for( int i = 0; i < walls.size(); i++){
+
+            // cur wall
+
+            Wall * w = walls[i];
+            double xi; double yi;
+
+            // Do I cross the wall?
+            if( get_line_intersection( w->getB().x(), w->getB().y(), w->getA().x(), w->getA().y(),
+                        p->getPos().x(), p->getPos().y(), p->getOldPos().x(), p->getOldPos().y(), xi,yi))
+            {
+                Vec3f normal = w->getNormalOfWall();
+                normal.Normalize();
+
+                // Am i comming from the inside direction or out?
+                if(fabs(p->getDir().AngleBetween(normal)) < 90 ){
+                    normal.Negate();
+                }
+
+                // Require changing center of particle p
+                Vec3f intersect(xi,yi,0);
+
+                Vec3f reflect = p->getDir() - 2 * (p->getDir().Dot3(normal)) * normal;
+                reflect.Normalize();
+
+                // Changing direction of particle p
+                Vec3f newPos = intersect.Distance3f(p->getPos()) * reflect + intersect;
+                p->setPos(newPos);
+
+                reflect.Negate();
+                Vec3f circlePos = intersect.Distance3f(p->getCenter())*reflect + intersect;
+                p->setCenter(circlePos);
+
+
+
+
+            }
+
+        }
+
+    }
 
 }
 

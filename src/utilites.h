@@ -21,12 +21,16 @@ std::vector<int> bresenham_line_plot(const int& _x0, const int& _y0,
 // This is value from [0 to 7]
 int getOctantOfLine(const int& x0, const int& y0,
                                      const int& x1, const int& y1);
-
-
 // This will switch the octant of a point by referance
 void switchToOctantZeroFrom(int octant, const int & _x, const int & _y, int & x, int & y);
 void switchToOctantFromZero(int octant, const int & _x, const int & _y, int & x, int & y);
 
+
+// This will return true of intersection happened, false if not.
+// If true it will return where it happend at i_x and i_y,
+bool get_line_intersection(const double & p0_x, const double & p0_y, const double & p1_x, const double & p1_y,
+                           const double & p2_x, const double & p2_y, const double & p3_x, const double & p3_y,
+                           double & i_x, double & i_y);
 #endif // UTILITES_H
 
 
